@@ -9,6 +9,53 @@ const DEMO_MODE = !SCRIPT_URL;
 // Admin password for demo mode
 const ADMIN_PASSWORD = 'admin1234';
 
+// ===== CONFIG: รายชื่อรหัสพนักงานที่สามารถร่วมกิจกรรม =====
+// ถ้า array ว่าง = ทุกคนสามารถร่วมได้
+// ถ้ามีรายชื่อ = เฉพาะรหัสที่อยู่ในลิสต์เท่านั้น
+const STORAGE_KEY_EMPLOYEES = 'lucky_wheel_allowed_employees';
+
+// โหลดจาก localStorage หรือใช้ค่าเริ่มต้น
+function loadAllowedEmployees(): string[] {
+  const stored = localStorage.getItem(STORAGE_KEY_EMPLOYEES);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return [];
+    }
+  }
+  // ค่าเริ่มต้น (ตัวอย่าง)
+  return ['EMP001', 'EMP002', 'EMP003', 'EMP004', 'EMP005'];
+}
+
+let allowedEmployeeIds: string[] = loadAllowedEmployees();
+
+// Export สำหรับใช้ใน UI
+export const ALLOWED_EMPLOYEE_IDS = allowedEmployeeIds;
+
+// ดึงรายชื่อทั้งหมด
+export function getAllowedEmployees(): string[] {
+  return [...allowedEmployeeIds];
+}
+
+// อัพเดทรายชื่อ
+export function setAllowedEmployees(ids: string[]): void {
+  allowedEmployeeIds = [...ids];
+  localStorage.setItem(STORAGE_KEY_EMPLOYEES, JSON.stringify(ids));
+}
+
+// ตรวจสอบว่ารหัสพนักงานมีสิทธิ์ร่วมกิจกรรมหรือไม่
+function isEmployeeAllowed(employeeId: string): boolean {
+  // ถ้าไม่มี config = ทุกคนเข้าร่วมได้
+  if (allowedEmployeeIds.length === 0) {
+    return true;
+  }
+  // ตรวจสอบว่าอยู่ในลิสต์หรือไม่ (case-insensitive)
+  return allowedEmployeeIds.some(
+    id => id.toLowerCase() === employeeId.toLowerCase()
+  );
+}
+
 // ===== DEMO DATA =====
 const demoPrizes: Prize[] = [
   { id: '1', name: 'อั่งเปา 888', description: 'อั่งเปามงคล', image_url: '', probability: 5, quantity: 1, color: '#c41e3a', is_active: true },
@@ -73,6 +120,11 @@ const demoApi = {
   // ผู้ใช้ทั่วไป - กรอกรหัสพนักงานและชื่อ
   async enterEmployee(data: { employeeId: string; name: string }): Promise<{ success: boolean; user?: User; error?: string }> {
     await delay(300);
+
+    // ตรวจสอบว่ารหัสพนักงานมีสิทธิ์ร่วมกิจกรรมหรือไม่
+    if (!isEmployeeAllowed(data.employeeId)) {
+      return { success: false, error: 'รหัสพนักงานนี้ไม่มีสิทธิ์ร่วมกิจกรรม' };
+    }
 
     // ตรวจสอบว่าเคยหมุนไปแล้วหรือยัง
     const existingUser = demoUsers.find(u => u.employee_id.toLowerCase() === data.employeeId.toLowerCase() && u.role === 'user');
@@ -234,3 +286,45 @@ const realApi = {
 // Export API based on mode
 export const api = DEMO_MODE ? demoApi : realApi;
 export const isDemoMode = DEMO_MODE;
+
+// ===== EMPLOYEE WHITELIST API =====
+
+// สำหรับ Demo Mode - ใช้ localStorage
+// สำหรับ Real Mode - ใช้ Google Sheet
+
+export async function fetchAllowedEmployees(): Promise<string[]> {
+  if (DEMO_MODE) {
+    return getAllowedEmployees();
+  }
+
+  try {
+    const result = await fetchApi<{ success: boolean; employees: string[] }>('getAllowedEmployees');
+    if (result.success) {
+      // Sync to localStorage
+      localStorage.setItem(STORAGE_KEY_EMPLOYEES, JSON.stringify(result.employees));
+      allowedEmployeeIds = result.employees;
+      return result.employees;
+    }
+  } catch (error) {
+    console.error('Failed to fetch allowed employees:', error);
+  }
+
+  return getAllowedEmployees();
+}
+
+export async function saveAllowedEmployees(ids: string[]): Promise<boolean> {
+  // Update local state
+  setAllowedEmployees(ids);
+
+  if (DEMO_MODE) {
+    return true;
+  }
+
+  try {
+    const result = await fetchApi<{ success: boolean }>('setAllowedEmployees', {}, 'POST', { employees: ids });
+    return result.success;
+  } catch (error) {
+    console.error('Failed to save allowed employees:', error);
+    return false;
+  }
+}

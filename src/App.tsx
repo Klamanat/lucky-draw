@@ -4,6 +4,7 @@ import { History } from './pages/History';
 import { Dashboard } from './pages/admin/Dashboard';
 import { PrizeManager } from './pages/admin/PrizeManager';
 import { SpinLogs } from './pages/admin/SpinLogs';
+import { EmployeeManager } from './pages/admin/EmployeeManager';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/admin/prizes" element={<PrizeManager />} />
           <Route path="/admin/logs" element={<SpinLogs />} />
+          <Route path="/admin/employees" element={<EmployeeManager />} />
         </Routes>
 
         {/* Decorative gold line at bottom */}

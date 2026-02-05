@@ -5,7 +5,7 @@ import { PrizePopup } from '../components/PrizePopup';
 import { EmployeeForm } from '../components/EmployeeForm';
 import { useAuth } from '../hooks/useAuth';
 import { useSpin } from '../hooks/useSpin';
-import { isDemoMode } from '../services/api';
+import { isDemoMode, getAllowedEmployees } from '../services/api';
 import type { Prize } from '../types';
 
 export function Home() {
@@ -81,9 +81,18 @@ export function Home() {
         />
 
         {isDemoMode && (
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-2">
+            {getAllowedEmployees().length > 0 && (
+              <div className="glass-card rounded-lg p-3 inline-block">
+                <p className="text-gray-500 text-xs mb-1">รหัสพนักงานที่มีสิทธิ์:</p>
+                <p className="text-amber-700 text-xs font-mono">
+                  {getAllowedEmployees().slice(0, 5).join(', ')}
+                  {getAllowedEmployees().length > 5 && ` (+${getAllowedEmployees().length - 5})`}
+                </p>
+              </div>
+            )}
             <p className="text-amber-200/40 text-xs">
-              ทดสอบ Admin: กรอกรหัส admin1234
+              Admin: กรอกรหัส admin1234
             </p>
           </div>
         )}

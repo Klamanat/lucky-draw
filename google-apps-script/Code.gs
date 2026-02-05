@@ -3,9 +3,9 @@
  *
  * วิธีใช้:
  * 1. สร้าง Google Sheet ใหม่
- * 2. สร้าง 4 sheets: prizes, users, spin_history, settings
- * 3. Copy code นี้ไปที่ Extensions > Apps Script
- * 4. เปลี่ยน SPREADSHEET_ID เป็น ID ของ Sheet คุณ
+ * 2. Copy code นี้ไปที่ Extensions > Apps Script
+ * 3. เปลี่ยน SPREADSHEET_ID เป็น ID ของ Sheet คุณ
+ * 4. รันฟังก์ชัน setupSheets() เพื่อสร้าง sheets
  * 5. Deploy > New deployment > Web app
  * 6. Execute as: Me, Who has access: Anyone
  * 7. Copy URL มาใส่ใน .env ของ React app
@@ -13,7 +13,8 @@
 
 // ===== CONFIG =====
 const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
-const DEFAULT_SPINS = 3; // จำนวนสิทธิ์หมุนเริ่มต้น
+const DEFAULT_SPINS = 1; // จำนวนสิทธิ์หมุนเริ่มต้น
+const ADMIN_PASSWORD = 'admin1234'; // รหัสผ่าน Admin
 
 // ===== MAIN HANDLERS =====
 function doGet(e) {
@@ -40,11 +41,11 @@ function handleRequest(e) {
       case 'getHistory':
         result = getHistory(e.parameter.userId);
         break;
-      case 'registerUser':
-        result = registerUser(JSON.parse(e.postData.contents));
+      case 'enterEmployee':
+        result = enterEmployee(JSON.parse(e.postData.contents));
         break;
-      case 'loginUser':
-        result = loginUser(e.parameter.email);
+      case 'loginAdmin':
+        result = loginAdmin(e.parameter.password);
         break;
 
       // Admin APIs
@@ -64,6 +65,20 @@ function handleRequest(e) {
         result = getStats();
         break;
 
+      // Employee whitelist APIs
+      case 'getAllowedEmployees':
+        result = getAllowedEmployees();
+        break;
+      case 'setAllowedEmployees':
+        result = setAllowedEmployees(JSON.parse(e.postData.contents));
+        break;
+      case 'addAllowedEmployee':
+        result = addAllowedEmployee(e.parameter.employeeId);
+        break;
+      case 'removeAllowedEmployee':
+        result = removeAllowedEmployee(e.parameter.employeeId);
+        break;
+
       default:
         result = { success: false, error: 'Unknown action' };
     }
@@ -74,6 +89,189 @@ function handleRequest(e) {
   return ContentService
     .createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ===== EMPLOYEE FUNCTIONS =====
+
+function enterEmployee(data) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+  // ตรวจสอบว่ารหัสพนักงานมีสิทธิ์หรือไม่
+  if (!isEmployeeAllowed(data.employeeId)) {
+    return { success: false, error: 'รหัสพนักงานนี้ไม่มีสิทธิ์ร่วมกิจกรรม' };
+  }
+
+  const userSheet = ss.getSheetByName('users');
+  const userData = userSheet.getDataRange().getValues();
+
+  // ตรวจสอบว่าเคยลงทะเบียนแล้วหรือยัง
+  for (let i = 1; i < userData.length; i++) {
+    if (userData[i][1] && userData[i][1].toString().toLowerCase() === data.employeeId.toLowerCase()) {
+      return {
+        success: true,
+        user: {
+          id: userData[i][0].toString(),
+          employee_id: userData[i][1],
+          name: userData[i][2],
+          spins_remaining: parseInt(userData[i][4]) || 0,
+          role: userData[i][5] || 'user',
+          created_at: userData[i][6] ? new Date(userData[i][6]).toISOString() : ''
+        }
+      };
+    }
+  }
+
+  // สร้างผู้ใช้ใหม่
+  const lastRow = userSheet.getLastRow();
+  const newId = 'emp_' + (lastRow > 0 ? lastRow : 1);
+  const now = new Date();
+
+  userSheet.appendRow([
+    newId,
+    data.employeeId.toUpperCase(),
+    data.name,
+    '', // phone (not used)
+    DEFAULT_SPINS,
+    'user',
+    now
+  ]);
+
+  return {
+    success: true,
+    user: {
+      id: newId,
+      employee_id: data.employeeId.toUpperCase(),
+      name: data.name,
+      spins_remaining: DEFAULT_SPINS,
+      role: 'user',
+      created_at: now.toISOString()
+    }
+  };
+}
+
+function loginAdmin(password) {
+  if (password !== ADMIN_PASSWORD) {
+    return { success: false, error: 'รหัสผ่านไม่ถูกต้อง' };
+  }
+
+  return {
+    success: true,
+    user: {
+      id: 'admin',
+      employee_id: 'ADMIN',
+      name: 'ผู้ดูแลระบบ',
+      spins_remaining: 999,
+      role: 'admin',
+      created_at: new Date().toISOString()
+    }
+  };
+}
+
+// ===== ALLOWED EMPLOYEES FUNCTIONS =====
+
+function isEmployeeAllowed(employeeId) {
+  const employees = getAllowedEmployees().employees;
+
+  // ถ้าไม่มีรายชื่อ = ทุกคนเข้าร่วมได้
+  if (employees.length === 0) {
+    return true;
+  }
+
+  // ตรวจสอบว่าอยู่ในลิสต์หรือไม่ (case-insensitive)
+  return employees.some(id => id.toLowerCase() === employeeId.toLowerCase());
+}
+
+function getAllowedEmployees() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName('allowed_employees');
+
+  if (!sheet) {
+    // สร้าง sheet ถ้ายังไม่มี
+    sheet = ss.insertSheet('allowed_employees');
+    sheet.getRange(1, 1).setValue('employee_id');
+    return { success: true, employees: [] };
+  }
+
+  const data = sheet.getDataRange().getValues();
+  const employees = [];
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0]) {
+      employees.push(data[i][0].toString().toUpperCase());
+    }
+  }
+
+  return { success: true, employees };
+}
+
+function setAllowedEmployees(data) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName('allowed_employees');
+
+  if (!sheet) {
+    sheet = ss.insertSheet('allowed_employees');
+  }
+
+  // ล้างข้อมูลเดิม
+  sheet.clear();
+
+  // เพิ่ม header
+  sheet.getRange(1, 1).setValue('employee_id');
+
+  // เพิ่มข้อมูลใหม่
+  const employees = data.employees || [];
+  if (employees.length > 0) {
+    const values = employees.map(id => [id.toUpperCase()]);
+    sheet.getRange(2, 1, values.length, 1).setValues(values);
+  }
+
+  return { success: true, employees: employees.map(id => id.toUpperCase()) };
+}
+
+function addAllowedEmployee(employeeId) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName('allowed_employees');
+
+  if (!sheet) {
+    sheet = ss.insertSheet('allowed_employees');
+    sheet.getRange(1, 1).setValue('employee_id');
+  }
+
+  const id = employeeId.toUpperCase();
+
+  // ตรวจสอบว่ามีอยู่แล้วหรือไม่
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] && data[i][0].toString().toUpperCase() === id) {
+      return { success: true, message: 'Already exists' };
+    }
+  }
+
+  // เพิ่มใหม่
+  sheet.appendRow([id]);
+
+  return { success: true };
+}
+
+function removeAllowedEmployee(employeeId) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName('allowed_employees');
+
+  if (!sheet) {
+    return { success: false, error: 'Sheet not found' };
+  }
+
+  const id = employeeId.toUpperCase();
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] && data[i][0].toString().toUpperCase() === id) {
+      sheet.deleteRow(i + 1);
+      return { success: true };
+    }
+  }
+
+  return { success: false, error: 'Not found' };
 }
 
 // ===== PRIZE FUNCTIONS =====
@@ -157,71 +355,6 @@ function deletePrize(id) {
   return { success: false, error: 'Prize not found' };
 }
 
-// ===== USER FUNCTIONS =====
-
-function registerUser(userData) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('users');
-  const data = sheet.getDataRange().getValues();
-
-  // Check if email exists
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][1] === userData.email) {
-      return { success: false, error: 'อีเมลนี้ถูกใช้แล้ว' };
-    }
-  }
-
-  const lastRow = sheet.getLastRow();
-  const newId = lastRow > 0 ? lastRow : 1;
-  const now = new Date();
-
-  sheet.appendRow([
-    newId.toString(),
-    userData.email,
-    userData.name,
-    userData.phone || '',
-    DEFAULT_SPINS,
-    'user',
-    now
-  ]);
-
-  return {
-    success: true,
-    user: {
-      id: newId.toString(),
-      email: userData.email,
-      name: userData.name,
-      phone: userData.phone || '',
-      spins_remaining: DEFAULT_SPINS,
-      role: 'user',
-      created_at: now.toISOString()
-    }
-  };
-}
-
-function loginUser(email) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('users');
-  const data = sheet.getDataRange().getValues();
-
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][1] === email) {
-      return {
-        success: true,
-        user: {
-          id: data[i][0].toString(),
-          email: data[i][1],
-          name: data[i][2],
-          phone: data[i][3] || '',
-          spins_remaining: parseInt(data[i][4]) || 0,
-          role: data[i][5] || 'user',
-          created_at: data[i][6] ? new Date(data[i][6]).toISOString() : ''
-        }
-      };
-    }
-  }
-
-  return { success: false, error: 'ไม่พบผู้ใช้งาน กรุณาลงทะเบียนก่อน' };
-}
-
 // ===== SPIN FUNCTIONS =====
 
 function spin(userId) {
@@ -232,13 +365,13 @@ function spin(userId) {
   // 1. ตรวจสอบสิทธิ์ผู้ใช้
   let userRow = -1;
   let userName = '';
-  let userEmail = '';
+  let employeeId = '';
   let spinsRemaining = 0;
 
   for (let i = 1; i < userData.length; i++) {
     if (userData[i][0].toString() === userId.toString()) {
       userRow = i + 1;
-      userEmail = userData[i][1];
+      employeeId = userData[i][1];
       userName = userData[i][2];
       spinsRemaining = parseInt(userData[i][4]) || 0;
       break;
@@ -298,7 +431,7 @@ function spin(userId) {
     newHistoryId.toString(),
     userId,
     userName,
-    userEmail,
+    employeeId,
     selectedPrize.id,
     selectedPrize.name,
     new Date()
@@ -322,7 +455,7 @@ function getHistory(userId) {
         id: data[i][0].toString(),
         user_id: data[i][1].toString(),
         user_name: data[i][2],
-        user_email: data[i][3],
+        employee_id: data[i][3],
         prize_id: data[i][4].toString(),
         prize_name: data[i][5],
         spun_at: data[i][6] ? new Date(data[i][6]).toISOString() : ''
@@ -347,7 +480,7 @@ function getAllHistory() {
         id: data[i][0].toString(),
         user_id: data[i][1].toString(),
         user_name: data[i][2],
-        user_email: data[i][3],
+        employee_id: data[i][3],
         prize_id: data[i][4].toString(),
         prize_name: data[i][5],
         spun_at: data[i][6] ? new Date(data[i][6]).toISOString() : ''
@@ -395,7 +528,7 @@ function getStats() {
 // ===== SETUP HELPER =====
 
 /**
- * รันฟังก์ชันนี้ครั้งแรกเพื่อสร้าง headers ใน sheets
+ * รันฟังก์ชันนี้ครั้งแรกเพื่อสร้าง sheets
  */
 function setupSheets() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -412,14 +545,21 @@ function setupSheets() {
   if (!userSheet) {
     userSheet = ss.insertSheet('users');
   }
-  userSheet.getRange(1, 1, 1, 7).setValues([['id', 'email', 'name', 'phone', 'spins_remaining', 'role', 'created_at']]);
+  userSheet.getRange(1, 1, 1, 7).setValues([['id', 'employee_id', 'name', 'phone', 'spins_remaining', 'role', 'created_at']]);
 
   // Spin history sheet
   let historySheet = ss.getSheetByName('spin_history');
   if (!historySheet) {
     historySheet = ss.insertSheet('spin_history');
   }
-  historySheet.getRange(1, 1, 1, 7).setValues([['id', 'user_id', 'user_name', 'user_email', 'prize_id', 'prize_name', 'spun_at']]);
+  historySheet.getRange(1, 1, 1, 7).setValues([['id', 'user_id', 'user_name', 'employee_id', 'prize_id', 'prize_name', 'spun_at']]);
+
+  // Allowed employees sheet
+  let allowedSheet = ss.getSheetByName('allowed_employees');
+  if (!allowedSheet) {
+    allowedSheet = ss.insertSheet('allowed_employees');
+  }
+  allowedSheet.getRange(1, 1).setValue('employee_id');
 
   // Settings sheet
   let settingsSheet = ss.getSheetByName('settings');
@@ -429,17 +569,22 @@ function setupSheets() {
   settingsSheet.getRange(1, 1, 1, 2).setValues([['key', 'value']]);
 
   // Add sample prizes
-  prizeSheet.getRange(2, 1, 5, 8).setValues([
-    ['1', 'iPhone 15', 'สมาร์ทโฟนรุ่นใหม่', '', 5, 1, true, '#ef4444'],
-    ['2', 'AirPods Pro', 'หูฟังไร้สาย', '', 10, 3, true, '#3b82f6'],
-    ['3', 'Gift Voucher 500', 'บัตรกำนัล 500 บาท', '', 25, 10, true, '#22c55e'],
-    ['4', 'ส่วนลด 10%', 'คูปองส่วนลด', '', 30, -1, true, '#f97316'],
-    ['5', 'เสียใจด้วย', 'ลองใหม่นะ', '', 30, -1, true, '#6b7280']
+  prizeSheet.getRange(2, 1, 6, 8).setValues([
+    ['1', 'อั่งเปา 888', 'อั่งเปามงคล', '', 5, 1, true, '#c41e3a'],
+    ['2', 'ทองคำ 1 สลึง', 'ทองคำแท้', '', 5, 2, true, '#ffd700'],
+    ['3', 'อั่งเปา 168', 'เลขมงคล', '', 15, 10, true, '#8b0000'],
+    ['4', 'ส่วนลด 20%', 'คูปองส่วนลด', '', 25, -1, true, '#daa520'],
+    ['5', 'ส้มมงคล', 'ส้มโชคดี', '', 25, -1, true, '#b22222'],
+    ['6', 'ลองใหม่นะ', 'โชคดีครั้งหน้า', '', 25, -1, true, '#cd853f']
   ]);
 
-  // Add admin user
-  userSheet.getRange(2, 1, 1, 7).setValues([
-    ['1', 'admin@example.com', 'Admin', '', 999, 'admin', new Date()]
+  // Add sample allowed employees
+  allowedSheet.getRange(2, 1, 5, 1).setValues([
+    ['EMP001'],
+    ['EMP002'],
+    ['EMP003'],
+    ['EMP004'],
+    ['EMP005']
   ]);
 
   Logger.log('Setup completed!');

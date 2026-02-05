@@ -64,7 +64,7 @@ export function Dashboard() {
         </div>
 
         {/* Navigation */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           <Link
             to="/admin/prizes"
             className="glass-card rounded-lg p-6 text-center hover:shadow-lg transition-all shadow-md border border-amber-600/10"
@@ -76,6 +76,18 @@ export function Dashboard() {
             </div>
             <p className="text-gray-800 font-semibold">จัดการรางวัล</p>
             <p className="text-gray-500 text-sm mt-1">เพิ่ม แก้ไข ลบรางวัล</p>
+          </Link>
+          <Link
+            to="/admin/employees"
+            className="glass-card rounded-lg p-6 text-center hover:shadow-lg transition-all shadow-md border border-amber-600/10"
+          >
+            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <p className="text-gray-800 font-semibold">จัดการพนักงาน</p>
+            <p className="text-gray-500 text-sm mt-1">กำหนดสิทธิ์เข้าร่วม</p>
           </Link>
           <Link
             to="/admin/logs"
