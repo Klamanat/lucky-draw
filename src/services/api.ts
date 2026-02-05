@@ -6,22 +6,25 @@ const SCRIPT_URL = import.meta.env.VITE_SCRIPT_URL || '';
 // Demo Mode - ใช้เมื่อยังไม่ได้ตั้งค่า Google Sheet
 const DEMO_MODE = !SCRIPT_URL;
 
+// Admin password for demo mode
+const ADMIN_PASSWORD = 'admin1234';
+
 // ===== DEMO DATA =====
 const demoPrizes: Prize[] = [
-  { id: '1', name: 'iPhone 15', description: 'สมาร์ทโฟนรุ่นใหม่', image_url: '', probability: 5, quantity: 1, color: '#ef4444', is_active: true },
-  { id: '2', name: 'AirPods Pro', description: 'หูฟังไร้สาย', image_url: '', probability: 10, quantity: 3, color: '#3b82f6', is_active: true },
-  { id: '3', name: 'Gift Voucher 500', description: 'บัตรกำนัล 500 บาท', image_url: '', probability: 20, quantity: 10, color: '#22c55e', is_active: true },
-  { id: '4', name: 'ส่วนลด 10%', description: 'คูปองส่วนลด', image_url: '', probability: 30, quantity: -1, color: '#f97316', is_active: true },
-  { id: '5', name: 'ลองใหม่นะ', description: 'เสียใจด้วย', image_url: '', probability: 35, quantity: -1, color: '#6b7280', is_active: true },
+  { id: '1', name: 'อั่งเปา 888', description: 'อั่งเปามงคล', image_url: '', probability: 5, quantity: 1, color: '#c41e3a', is_active: true },
+  { id: '2', name: 'ทองคำ 1 สลึง', description: 'ทองคำแท้', image_url: '', probability: 5, quantity: 2, color: '#ffd700', is_active: true },
+  { id: '3', name: 'อั่งเปา 168', description: 'เลขมงคล', image_url: '', probability: 15, quantity: 10, color: '#8b0000', is_active: true },
+  { id: '4', name: 'ส่วนลด 20%', description: 'คูปองส่วนลด', image_url: '', probability: 25, quantity: -1, color: '#daa520', is_active: true },
+  { id: '5', name: 'ส้มมงคล', description: 'ส้มโชคดี', image_url: '', probability: 25, quantity: -1, color: '#b22222', is_active: true },
+  { id: '6', name: 'ลองใหม่นะ', description: 'โชคดีครั้งหน้า', image_url: '', probability: 25, quantity: -1, color: '#cd853f', is_active: true },
 ];
 
 let demoUsers: User[] = [
-  { id: '1', email: 'admin@example.com', name: 'Admin', phone: '', spins_remaining: 999, role: 'admin', created_at: new Date().toISOString() },
-  { id: '2', email: 'demo@example.com', name: 'Demo User', phone: '0812345678', spins_remaining: 5, role: 'user', created_at: new Date().toISOString() },
+  { id: 'admin', employee_id: 'ADMIN', name: 'ผู้ดูแลระบบ', spins_remaining: 999, role: 'admin', created_at: new Date().toISOString() },
 ];
 
 let demoHistory: SpinHistory[] = [];
-let demoNextUserId = 3;
+let demoNextUserId = 1;
 
 // Weighted random selection
 function selectPrize(prizes: Prize[]): Prize {
@@ -58,7 +61,7 @@ const demoApi = {
       id: String(demoHistory.length + 1),
       user_id: userId,
       user_name: user.name,
-      user_email: user.email,
+      employee_id: user.employee_id,
       prize_id: prize.id,
       prize_name: prize.name,
       spun_at: new Date().toISOString(),
@@ -67,33 +70,41 @@ const demoApi = {
     return { success: true, prize, spinsRemaining: user.spins_remaining };
   },
 
-  async login(email: string): Promise<{ success: boolean; user?: User; error?: string }> {
+  // ผู้ใช้ทั่วไป - กรอกรหัสพนักงานและชื่อ
+  async enterEmployee(data: { employeeId: string; name: string }): Promise<{ success: boolean; user?: User; error?: string }> {
     await delay(300);
-    const user = demoUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (user) {
-      return { success: true, user: { ...user } };
-    }
-    return { success: false, error: 'ไม่พบผู้ใช้งาน กรุณาลงทะเบียนก่อน' };
-  },
 
-  async register(data: { name: string; email: string; phone: string }): Promise<{ success: boolean; user?: User; error?: string }> {
-    await delay(300);
-    const exists = demoUsers.find(u => u.email.toLowerCase() === data.email.toLowerCase());
-    if (exists) {
-      return { success: false, error: 'อีเมลนี้ถูกใช้แล้ว' };
+    // ตรวจสอบว่าเคยหมุนไปแล้วหรือยัง
+    const existingUser = demoUsers.find(u => u.employee_id.toLowerCase() === data.employeeId.toLowerCase() && u.role === 'user');
+
+    if (existingUser) {
+      // ถ้าเคยลงทะเบียนแล้ว ส่งข้อมูลเดิมกลับไป
+      return { success: true, user: { ...existingUser } };
     }
 
+    // สร้างผู้ใช้ใหม่
     const newUser: User = {
-      id: String(demoNextUserId++),
-      email: data.email,
+      id: `emp_${demoNextUserId++}`,
+      employee_id: data.employeeId.toUpperCase(),
       name: data.name,
-      phone: data.phone,
-      spins_remaining: 3,
+      spins_remaining: 1, // ให้หมุนได้ 1 ครั้ง
       role: 'user',
       created_at: new Date().toISOString(),
     };
     demoUsers.push(newUser);
     return { success: true, user: newUser };
+  },
+
+  // Admin login
+  async loginAdmin(password: string): Promise<{ success: boolean; user?: User; error?: string }> {
+    await delay(300);
+    if (password === ADMIN_PASSWORD) {
+      const admin = demoUsers.find(u => u.role === 'admin');
+      if (admin) {
+        return { success: true, user: { ...admin } };
+      }
+    }
+    return { success: false, error: 'รหัสผ่านไม่ถูกต้อง' };
   },
 
   async getHistory(userId: string): Promise<{ success: boolean; history: SpinHistory[] }> {
@@ -187,12 +198,12 @@ const realApi = {
     return fetchApi('spin', { userId });
   },
 
-  async login(email: string): Promise<{ success: boolean; user?: User; error?: string }> {
-    return fetchApi('loginUser', { email });
+  async enterEmployee(data: { employeeId: string; name: string }): Promise<{ success: boolean; user?: User; error?: string }> {
+    return fetchApi('enterEmployee', {}, 'POST', data);
   },
 
-  async register(data: { name: string; email: string; phone: string }): Promise<{ success: boolean; user?: User; error?: string }> {
-    return fetchApi('registerUser', {}, 'POST', data);
+  async loginAdmin(password: string): Promise<{ success: boolean; user?: User; error?: string }> {
+    return fetchApi('loginAdmin', { password });
   },
 
   async getHistory(userId: string): Promise<{ success: boolean; history: SpinHistory[] }> {

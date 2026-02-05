@@ -11,9 +11,8 @@ export interface Prize {
 
 export interface User {
   id: string;
-  email: string;
+  employee_id: string;
   name: string;
-  phone: string;
   spins_remaining: number;
   role: 'user' | 'admin';
   created_at: string;
@@ -23,7 +22,7 @@ export interface SpinHistory {
   id: string;
   user_id: string;
   user_name: string;
-  user_email: string;
+  employee_id: string;
   prize_id: string;
   prize_name: string;
   spun_at: string;

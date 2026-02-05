@@ -21,16 +21,17 @@ export function useAuth() {
     setLoading(false);
   }, []);
 
-  const login = useCallback(async (email: string) => {
+  // สำหรับผู้ใช้ทั่วไป - กรอกรหัสพนักงานและชื่อ
+  const enterAsEmployee = useCallback(async (data: { employeeId: string; name: string }) => {
     setLoading(true);
     try {
-      const result = await api.login(email);
+      const result = await api.enterEmployee(data);
       if (result.success && result.user) {
         setUser(result.user);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(result.user));
         return { success: true };
       }
-      return { success: false, error: result.error || 'ไม่พบผู้ใช้งาน' };
+      return { success: false, error: result.error || 'เกิดข้อผิดพลาด' };
     } catch {
       return { success: false, error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' };
     } finally {
@@ -38,16 +39,17 @@ export function useAuth() {
     }
   }, []);
 
-  const register = useCallback(async (data: { name: string; email: string; phone: string }) => {
+  // สำหรับ Admin - ยังคงใช้ระบบเดิม
+  const loginAdmin = useCallback(async (password: string) => {
     setLoading(true);
     try {
-      const result = await api.register(data);
+      const result = await api.loginAdmin(password);
       if (result.success && result.user) {
         setUser(result.user);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(result.user));
         return { success: true };
       }
-      return { success: false, error: result.error || 'ลงทะเบียนไม่สำเร็จ' };
+      return { success: false, error: result.error || 'รหัสผ่านไม่ถูกต้อง' };
     } catch {
       return { success: false, error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' };
     } finally {
@@ -73,8 +75,8 @@ export function useAuth() {
     loading,
     isLoggedIn: !!user,
     isAdmin: user?.role === 'admin',
-    login,
-    register,
+    enterAsEmployee,
+    loginAdmin,
     logout,
     updateSpinsRemaining,
   };
