@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { Prize } from '../types';
-// import { RedEnvelopeIcon, CheckCircleIcon } from './icons';
+import { RedEnvelopeIcon, HeartIcon } from './icons';
 
 interface PrizePopupProps {
   prize: Prize;
-  onClose: () => void;
+  onClaim: () => void;
+  onDonate: (amount: number) => void;
+  donating?: boolean;
 }
 
 interface Confetti {
@@ -16,8 +18,10 @@ interface Confetti {
   shape: 'circle' | 'square' | 'star';
 }
 
-export function PrizePopup({ prize, onClose }: PrizePopupProps) {
+export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupProps) {
   const [confetti, setConfetti] = useState<Confetti[]>([]);
+  const [showDonateForm, setShowDonateForm] = useState(false);
+  const [donateAmount, setDonateAmount] = useState('');
 
   useEffect(() => {
     // Generate CNY themed confetti
@@ -96,7 +100,7 @@ export function PrizePopup({ prize, onClose }: PrizePopupProps) {
             {/* Icon */}
             <div className="mb-6 mt-4">
               <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-600 flex items-center justify-center shadow-xl ring-4 ring-yellow-300/50">
-                <span className="text-5xl">🧧</span>
+                <RedEnvelopeIcon className="w-12 h-12 text-red-600" />
               </div>
             </div>
 
@@ -132,15 +136,66 @@ export function PrizePopup({ prize, onClose }: PrizePopupProps) {
               )}
             </div>
 
-            {/* Button */}
-            <button
-              onClick={onClose}
-              className="w-full py-4 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 text-red-700 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all border-2 border-yellow-500"
-            >
-              <span className="flex items-center justify-center gap-2">
-                รับอั่งเปา 🧧
-              </span>
-            </button>
+            {/* Buttons / Donate Form */}
+            {showDonateForm ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-yellow-200 text-sm font-bold mb-2">จำนวนเงินบริจาค (บาท)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={donateAmount}
+                    onChange={(e) => setDonateAmount(e.target.value)}
+                    placeholder="ระบุจำนวนเงิน"
+                    className="w-full px-4 py-3 rounded-xl bg-gradient-to-b from-yellow-50 to-orange-50 border-2 border-yellow-400 text-red-800 font-bold text-lg text-center focus:border-yellow-300 focus:outline-none focus:ring-4 focus:ring-yellow-400/30"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      const amount = parseFloat(donateAmount);
+                      if (amount > 0) onDonate(amount);
+                    }}
+                    disabled={donating || !donateAmount || parseFloat(donateAmount) <= 0}
+                    className="flex-1 py-4 bg-gradient-to-r from-pink-500 via-pink-400 to-pink-500 text-white rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all border-2 border-pink-600 disabled:opacity-50"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      {donating ? 'กำลังบริจาค...' : 'ยืนยันบริจาค'} <HeartIcon className="w-5 h-5" />
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => { setShowDonateForm(false); setDonateAmount(''); }}
+                    disabled={donating}
+                    className="py-4 px-6 bg-white/20 text-yellow-300 rounded-xl font-bold hover:bg-white/30 transition-colors border-2 border-yellow-400/50 disabled:opacity-50"
+                  >
+                    ยกเลิก
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-3">
+                <button
+                  onClick={onClaim}
+                  disabled={donating}
+                  className={`${prize.is_donatable ? 'flex-1' : 'w-full'} py-4 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 text-red-700 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all border-2 border-yellow-500 disabled:opacity-50`}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    รับอั่งเปา <RedEnvelopeIcon className="w-5 h-5 text-red-600" />
+                  </span>
+                </button>
+                {prize.is_donatable && (
+                  <button
+                    onClick={() => setShowDonateForm(true)}
+                    className="flex-1 py-4 bg-gradient-to-r from-pink-500 via-pink-400 to-pink-500 text-white rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all border-2 border-pink-600"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      บริจาค <HeartIcon className="w-5 h-5" />
+                    </span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Bottom decoration */}

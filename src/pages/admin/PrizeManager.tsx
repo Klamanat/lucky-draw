@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Prize } from '../../types';
 import { api } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-// import { LockIcon, GiftIcon, PlusIcon, ChartIcon, BoxIcon, EditIcon, TrashIcon, SaveIcon } from '../../components/icons';
+import { LockIcon, GiftIcon, PlusIcon, ChartIcon, PackageIcon, EditIcon, TrashIcon, SaveIcon, HeartIcon } from '../../components/icons';
 
 const DEFAULT_COLORS = ['#DC143C', '#FFD700', '#8B0000', '#FFA500', '#B22222', '#D4AF37'];
 
@@ -69,7 +69,7 @@ export function PrizeManager() {
         <div className="relative">
           <div className="absolute inset-0 rounded-2xl bg-red-500/30 blur-xl" />
           <div className="relative glass-card rounded-2xl p-10 text-center border-2 border-yellow-500/30">
-            <span className="text-4xl mb-4 block">🔒</span>
+            <LockIcon className="w-10 h-10 text-red-500 mb-4 mx-auto" />
             <p className="text-red-700 font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
             <Link to="/" className="px-8 py-3 btn-premium rounded-xl inline-block font-bold">
               กลับหน้าหลัก
@@ -87,7 +87,7 @@ export function PrizeManager() {
         <div className="flex items-center justify-between mb-10">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-3xl">🎁</span>
+              <GiftIcon className="w-8 h-8 text-red-500" />
               <h1 className="text-3xl font-bold">
                 <span className="gold-shimmer">จัดการรางวัล</span>
               </h1>
@@ -96,10 +96,10 @@ export function PrizeManager() {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => setEditingPrize({ name: '', probability: 10, quantity: -1, color: DEFAULT_COLORS[prizes.length % DEFAULT_COLORS.length], is_active: true })}
+              onClick={() => setEditingPrize({ name: '', probability: 10, quantity: -1, color: DEFAULT_COLORS[prizes.length % DEFAULT_COLORS.length], is_active: true, is_donatable: true })}
               className="px-6 py-3 btn-gold rounded-xl font-bold flex items-center gap-2"
             >
-              ➕ เพิ่มรางวัล
+              <PlusIcon className="w-5 h-5" /> เพิ่มรางวัล
             </button>
             <Link
               to="/admin"
@@ -137,13 +137,20 @@ export function PrizeManager() {
 
                   {/* Prize info */}
                   <div className="flex-1">
-                    <p className="text-red-800 font-bold text-lg">{prize.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-red-800 font-bold text-lg">{prize.name}</p>
+                      {prize.is_donatable && (
+                        <span className="text-xs font-bold text-pink-600 bg-pink-100 px-2 py-0.5 rounded-full border border-pink-300 flex items-center gap-1">
+                          <HeartIcon className="w-3 h-3" /> บริจาคได้
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-4 mt-2 text-sm">
                       <span className="flex items-center gap-1 text-gray-600">
-                        📊 ความน่าจะเป็น: <span className="font-bold text-red-700">{prize.probability}%</span>
+                        <ChartIcon className="w-4 h-4" /> ความน่าจะเป็น: <span className="font-bold text-red-700">{prize.probability}%</span>
                       </span>
                       <span className="flex items-center gap-1 text-gray-600">
-                        📦 จำนวน: <span className="font-bold text-red-700">{prize.quantity === -1 ? 'ไม่จำกัด' : prize.quantity}</span>
+                        <PackageIcon className="w-4 h-4" /> จำนวน: <span className="font-bold text-red-700">{prize.quantity === -1 ? 'ไม่จำกัด' : prize.quantity}</span>
                       </span>
                     </div>
                   </div>
@@ -154,13 +161,13 @@ export function PrizeManager() {
                       onClick={() => setEditingPrize(prize)}
                       className="p-3 bg-yellow-100 text-yellow-700 rounded-xl hover:bg-yellow-200 transition-colors border border-yellow-300"
                     >
-                      ✏️
+                      <EditIcon className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleDelete(prize.id)}
                       className="p-3 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-colors border border-red-300"
                     >
-                      🗑️
+                      <TrashIcon className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
@@ -171,7 +178,7 @@ export function PrizeManager() {
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl bg-yellow-500/20 blur-xl" />
                 <div className="relative glass-card rounded-2xl p-12 text-center border-2 border-yellow-500/30">
-                  <span className="text-5xl mb-4 block">🎁</span>
+                  <GiftIcon className="w-12 h-12 text-red-500 mb-4 mx-auto" />
                   <p className="text-red-700 font-bold">ยังไม่มีรางวัล</p>
                   <p className="text-gray-500 text-sm mt-1">กดปุ่ม "เพิ่มรางวัล" เพื่อเริ่มต้น</p>
                 </div>
@@ -197,7 +204,7 @@ export function PrizeManager() {
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8 relative z-10">
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg border-2 border-yellow-300">
-                    <span className="text-3xl">🎁</span>
+                    <GiftIcon className="w-8 h-8 text-white" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-yellow-300">
@@ -282,6 +289,20 @@ export function PrizeManager() {
                       ))}
                     </div>
                   </div>
+
+                  <div>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <div
+                        onClick={() => setEditingPrize({ ...editingPrize, is_donatable: !editingPrize.is_donatable })}
+                        className={`relative w-12 h-7 rounded-full transition-colors ${editingPrize.is_donatable ? 'bg-pink-500' : 'bg-white/20'}`}
+                      >
+                        <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${editingPrize.is_donatable ? 'translate-x-5' : ''}`} />
+                      </div>
+                      <span className="text-sm font-bold text-yellow-300 flex items-center gap-2">
+                        <HeartIcon className="w-4 h-4 text-pink-400" /> อนุญาตบริจาค
+                      </span>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="flex gap-4 mt-8 relative z-10">
@@ -296,7 +317,7 @@ export function PrizeManager() {
                         กำลังบันทึก...
                       </span>
                     ) : (
-                      '💾 บันทึก'
+                      <span className="flex items-center justify-center gap-2"><SaveIcon className="w-5 h-5" /> บันทึก</span>
                     )}
                   </button>
                   <button

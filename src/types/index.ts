@@ -7,6 +7,7 @@ export interface Prize {
   quantity: number;
   color: string;
   is_active: boolean;
+  is_donatable: boolean;
 }
 
 export interface User {
@@ -26,12 +27,15 @@ export interface SpinHistory {
   prize_id: string;
   prize_name: string;
   spun_at: string;
+  status: 'claimed' | 'donated';
+  donation_amount?: number;
 }
 
 export interface SpinResult {
   success: boolean;
   prize?: Prize;
   spinsRemaining?: number;
+  historyId?: string;
   error?: string;
 }
 

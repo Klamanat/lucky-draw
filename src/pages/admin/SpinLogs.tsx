@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { SpinHistory } from '../../types';
 import { api } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-// import { LockIcon, ClipboardIcon, GiftIcon, ClockIcon, InboxIcon } from '../../components/icons';
+import { LockIcon, ClipboardIcon, GiftIcon, ClockIcon, InboxIcon, HeartIcon, CheckIcon } from '../../components/icons';
 
 export function SpinLogs() {
   const { isAdmin } = useAuth();
@@ -33,7 +33,7 @@ export function SpinLogs() {
         <div className="relative">
           <div className="absolute inset-0 rounded-2xl bg-red-500/30 blur-xl" />
           <div className="relative glass-card rounded-2xl p-10 text-center border-2 border-yellow-500/30">
-            <span className="text-4xl mb-4 block">🔒</span>
+            <LockIcon className="w-10 h-10 text-red-500 mb-4 mx-auto" />
             <p className="text-red-700 font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
             <Link
               to="/"
@@ -54,7 +54,7 @@ export function SpinLogs() {
         <div className="flex items-center justify-between mb-10">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-3xl">📋</span>
+              <ClipboardIcon className="w-8 h-8 text-red-500" />
               <h1 className="text-3xl font-bold">
                 <span className="gold-shimmer">ประวัติการหมุนทั้งหมด</span>
               </h1>
@@ -92,8 +92,9 @@ export function SpinLogs() {
               <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 px-6 py-4 border-b-2 border-yellow-400">
                 <div className="grid grid-cols-12 gap-4">
                   <div className="col-span-2 text-yellow-300 text-sm font-bold tracking-wide">รหัสพนักงาน</div>
-                  <div className="col-span-3 text-yellow-300 text-sm font-bold tracking-wide">ชื่อ</div>
-                  <div className="col-span-4 text-yellow-300 text-sm font-bold tracking-wide">รางวัล</div>
+                  <div className="col-span-2 text-yellow-300 text-sm font-bold tracking-wide">ชื่อ</div>
+                  <div className="col-span-3 text-yellow-300 text-sm font-bold tracking-wide">รางวัล</div>
+                  <div className="col-span-2 text-yellow-300 text-sm font-bold tracking-wide">สถานะ</div>
                   <div className="col-span-3 text-yellow-300 text-sm font-bold tracking-wide">เวลา</div>
                 </div>
               </div>
@@ -111,15 +112,31 @@ export function SpinLogs() {
                         {item.employee_id}
                       </span>
                     </div>
-                    <div className="col-span-3 text-red-700 font-medium">{item.user_name}</div>
-                    <div className="col-span-4">
+                    <div className="col-span-2 text-red-700 font-medium">{item.user_name}</div>
+                    <div className="col-span-3">
                       <span className="inline-flex items-center gap-2 text-red-800 font-bold bg-gradient-to-r from-yellow-100 to-orange-100 px-3 py-1 rounded-lg border-2 border-yellow-300">
-                        <span>🎁</span>
+                        <GiftIcon className="w-4 h-4 text-red-600" />
                         {item.prize_name}
                       </span>
                     </div>
+                    <div className="col-span-2">
+                      {item.status === 'donated' ? (
+                        <div>
+                          <span className="inline-flex items-center gap-1 text-pink-700 font-bold bg-pink-100 px-3 py-1 rounded-lg border border-pink-300 text-sm">
+                            <HeartIcon className="w-3 h-3" /> บริจาค
+                          </span>
+                          {item.donation_amount ? (
+                            <p className="text-pink-600 text-xs font-bold mt-1">{item.donation_amount.toLocaleString()} บาท</p>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-green-700 font-bold bg-green-100 px-3 py-1 rounded-lg border border-green-300 text-sm">
+                          <CheckIcon className="w-3 h-3" /> รับแล้ว
+                        </span>
+                      )}
+                    </div>
                     <div className="col-span-3 text-gray-500 text-sm flex items-center gap-2">
-                      <span>🕐</span>
+                      <ClockIcon className="w-4 h-4 text-gray-400" />
                       {formatDate(item.spun_at)}
                     </div>
                   </div>
@@ -127,7 +144,7 @@ export function SpinLogs() {
 
                 {history.length === 0 && (
                   <div className="px-6 py-16 text-center">
-                    <span className="text-5xl mb-4 block">📭</span>
+                    <InboxIcon className="w-12 h-12 text-red-300 mb-4 mx-auto" />
                     <p className="text-red-700 font-bold">ยังไม่มีประวัติการหมุน</p>
                   </div>
                 )}

@@ -5,7 +5,7 @@ import { PrizePopup } from '../components/PrizePopup';
 import { EmployeeForm } from '../components/EmployeeForm';
 import { useAuth } from '../hooks/useAuth';
 import { useSpin } from '../hooks/useSpin';
-import { isDemoMode, getAllowedEmployees } from '../services/api';
+import { isDemoMode, getAllowedEmployees, api } from '../services/api';
 import { LanternIcon, RedEnvelopeIcon, SettingsIcon, LogOutIcon, ScrollIcon } from '../components/icons';
 import type { Prize } from '../types';
 
@@ -24,6 +24,8 @@ export function Home() {
 
   const [targetPrizeId, setTargetPrizeId] = useState<string | undefined>();
   const [wonPrize, setWonPrize] = useState<Prize | null>(null);
+  const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
+  const [donating, setDonating] = useState(false);
 
   useEffect(() => {
     loadPrizes();
@@ -36,6 +38,7 @@ export function Home() {
 
     if (result.success && result.prize) {
       setTargetPrizeId(result.prize.id);
+      setCurrentHistoryId(result.historyId || null);
       if (result.spinsRemaining !== undefined) {
         updateSpinsRemaining(result.spinsRemaining);
       }
@@ -49,8 +52,27 @@ export function Home() {
     setTargetPrizeId(undefined);
   };
 
-  const handleClosePrize = () => {
+  const handleClaimPrize = () => {
     setWonPrize(null);
+    setCurrentHistoryId(null);
+  };
+
+  const handleDonatePrize = async (amount: number) => {
+    if (!currentHistoryId) return;
+    setDonating(true);
+    try {
+      const result = await api.donatePrize(currentHistoryId, amount);
+      if (result.success) {
+        setWonPrize(null);
+        setCurrentHistoryId(null);
+      } else {
+        alert(result.error || 'เกิดข้อผิดพลาด');
+      }
+    } catch {
+      alert('เกิดข้อผิดพลาด');
+    } finally {
+      setDonating(false);
+    }
   };
 
   // Loading state
@@ -243,7 +265,7 @@ export function Home() {
 
       {/* Prize Popup */}
       {wonPrize && (
-        <PrizePopup prize={wonPrize} onClose={handleClosePrize} />
+        <PrizePopup prize={wonPrize} onClaim={handleClaimPrize} onDonate={handleDonatePrize} donating={donating} />
       )}
     </div>
   );

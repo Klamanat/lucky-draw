@@ -58,12 +58,12 @@ function isEmployeeAllowed(employeeId: string): boolean {
 
 // ===== DEMO DATA =====
 const demoPrizes: Prize[] = [
-  { id: '1', name: 'อั่งเปา 888', description: 'อั่งเปามงคล', image_url: '', probability: 5, quantity: 1, color: '#c41e3a', is_active: true },
-  { id: '2', name: 'ทองคำ 1 สลึง', description: 'ทองคำแท้', image_url: '', probability: 5, quantity: 2, color: '#ffd700', is_active: true },
-  { id: '3', name: 'อั่งเปา 168', description: 'เลขมงคล', image_url: '', probability: 15, quantity: 10, color: '#8b0000', is_active: true },
-  { id: '4', name: 'ส่วนลด 20%', description: 'คูปองส่วนลด', image_url: '', probability: 25, quantity: -1, color: '#daa520', is_active: true },
-  { id: '5', name: 'ส้มมงคล', description: 'ส้มโชคดี', image_url: '', probability: 25, quantity: -1, color: '#b22222', is_active: true },
-  { id: '6', name: 'ลองใหม่นะ', description: 'โชคดีครั้งหน้า', image_url: '', probability: 25, quantity: -1, color: '#cd853f', is_active: true },
+  { id: '1', name: 'อั่งเปา 888', description: 'อั่งเปามงคล', image_url: '', probability: 5, quantity: 1, color: '#c41e3a', is_active: true, is_donatable: true },
+  { id: '2', name: 'ทองคำ 1 สลึง', description: 'ทองคำแท้', image_url: '', probability: 5, quantity: 2, color: '#ffd700', is_active: true, is_donatable: true },
+  { id: '3', name: 'อั่งเปา 168', description: 'เลขมงคล', image_url: '', probability: 15, quantity: 10, color: '#8b0000', is_active: true, is_donatable: true },
+  { id: '4', name: 'ส่วนลด 20%', description: 'คูปองส่วนลด', image_url: '', probability: 25, quantity: -1, color: '#daa520', is_active: true, is_donatable: false },
+  { id: '5', name: 'ส้มมงคล', description: 'ส้มโชคดี', image_url: '', probability: 25, quantity: -1, color: '#b22222', is_active: true, is_donatable: false },
+  { id: '6', name: 'ลองใหม่นะ', description: 'โชคดีครั้งหน้า', image_url: '', probability: 25, quantity: -1, color: '#cd853f', is_active: true, is_donatable: false },
 ];
 
 let demoUsers: User[] = [
@@ -104,17 +104,19 @@ const demoApi = {
     const prize = selectPrize(demoPrizes);
     user.spins_remaining--;
 
+    const historyId = String(demoHistory.length + 1);
     demoHistory.unshift({
-      id: String(demoHistory.length + 1),
+      id: historyId,
       user_id: userId,
       user_name: user.name,
       employee_id: user.employee_id,
       prize_id: prize.id,
       prize_name: prize.name,
       spun_at: new Date().toISOString(),
+      status: 'claimed',
     });
 
-    return { success: true, prize, spinsRemaining: user.spins_remaining };
+    return { success: true, prize, spinsRemaining: user.spins_remaining, historyId };
   },
 
   // ผู้ใช้ทั่วไป - กรอกรหัสพนักงานและชื่อ
@@ -169,17 +171,36 @@ const demoApi = {
     return { success: true, history: demoHistory };
   },
 
-  async getStats(): Promise<{ success: boolean; stats: { totalSpins: number; totalUsers: number; prizeStats: Record<string, number> } }> {
+  async donatePrize(historyId: string, amount: number): Promise<{ success: boolean; error?: string }> {
+    await delay(300);
+    const entry = demoHistory.find(h => h.id === historyId);
+    if (!entry) {
+      return { success: false, error: 'ไม่พบรายการ' };
+    }
+    entry.status = 'donated';
+    entry.donation_amount = amount;
+    return { success: true };
+  },
+
+  async getStats(): Promise<{ success: boolean; stats: { totalSpins: number; totalUsers: number; totalDonations: number; totalDonationAmount: number; prizeStats: Record<string, number> } }> {
     await delay(300);
     const prizeStats: Record<string, number> = {};
+    let totalDonations = 0;
+    let totalDonationAmount = 0;
     demoHistory.forEach(h => {
       prizeStats[h.prize_name] = (prizeStats[h.prize_name] || 0) + 1;
+      if (h.status === 'donated') {
+        totalDonations++;
+        totalDonationAmount += h.donation_amount || 0;
+      }
     });
     return {
       success: true,
       stats: {
         totalSpins: demoHistory.length,
         totalUsers: demoUsers.filter(u => u.role === 'user').length,
+        totalDonations,
+        totalDonationAmount,
         prizeStats,
       },
     };
@@ -228,12 +249,12 @@ async function fetchApi<T>(action: string, params: Record<string, string> = {}, 
 
   const options: RequestInit = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    redirect: 'follow',
   };
 
   if (method === 'POST' && body) {
+    // ใช้ text/plain เพื่อหลีกเลี่ยง CORS preflight
+    options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
     options.body = JSON.stringify(body);
   }
 
@@ -266,7 +287,11 @@ const realApi = {
     return fetchApi('getAllHistory');
   },
 
-  async getStats(): Promise<{ success: boolean; stats: { totalSpins: number; totalUsers: number; prizeStats: Record<string, number> } }> {
+  async donatePrize(historyId: string, amount: number): Promise<{ success: boolean; error?: string }> {
+    return fetchApi('donatePrize', { historyId, amount: String(amount) });
+  },
+
+  async getStats(): Promise<{ success: boolean; stats: { totalSpins: number; totalUsers: number; totalDonations: number; totalDonationAmount: number; prizeStats: Record<string, number> } }> {
     return fetchApi('getStats');
   },
 

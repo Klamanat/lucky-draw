@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-// import { LanternIcon, LockIcon, GiftIcon, UsersIcon, ClipboardIcon, TargetIcon, TrophyIcon, HomeIcon } from '../../components/icons';
+import { LanternIcon, LockIcon, GiftIcon, UsersIcon, ClipboardIcon, TargetIcon, TrophyIcon, HeartIcon } from '../../components/icons';
 
 interface Stats {
   totalSpins: number;
   totalUsers: number;
+  totalDonations: number;
+  totalDonationAmount: number;
   prizeStats: Record<string, number>;
 }
 
@@ -38,7 +40,7 @@ export function Dashboard() {
         <div className="relative">
           <div className="absolute inset-0 rounded-2xl bg-red-500/30 blur-xl" />
           <div className="relative glass-card rounded-2xl p-10 text-center border-2 border-yellow-500/30">
-            <span className="text-4xl mb-4 block">🔒</span>
+            <LockIcon className="w-10 h-10 text-red-500 mb-4 mx-auto" />
             <p className="text-red-700 font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
             <Link
               to="/"
@@ -59,7 +61,7 @@ export function Dashboard() {
         <div className="flex items-center justify-between mb-10">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-3xl">🏮</span>
+              <LanternIcon className="w-8 h-8 text-red-500" />
               <h1 className="text-3xl font-bold">
                 <span className="gold-shimmer">ระบบจัดการ</span>
               </h1>
@@ -81,7 +83,7 @@ export function Dashboard() {
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-yellow-400/30 to-red-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative glass-card rounded-2xl p-8 text-center border-2 border-yellow-500/20 group-hover:border-yellow-500/50 transition-all group-hover:shadow-xl">
               <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform border-2 border-yellow-400">
-                <span className="text-3xl">🎁</span>
+                <GiftIcon className="w-8 h-8 text-white" />
               </div>
               <p className="text-red-800 font-bold text-lg mb-1">จัดการรางวัล</p>
               <p className="text-gray-500 text-sm">เพิ่ม แก้ไข ลบรางวัล</p>
@@ -93,7 +95,7 @@ export function Dashboard() {
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-yellow-400/30 to-red-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative glass-card rounded-2xl p-8 text-center border-2 border-yellow-500/20 group-hover:border-yellow-500/50 transition-all group-hover:shadow-xl">
               <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform border-2 border-yellow-400">
-                <span className="text-3xl">👥</span>
+                <UsersIcon className="w-8 h-8 text-white" />
               </div>
               <p className="text-red-800 font-bold text-lg mb-1">จัดการพนักงาน</p>
               <p className="text-gray-500 text-sm">กำหนดสิทธิ์เข้าร่วม</p>
@@ -105,7 +107,7 @@ export function Dashboard() {
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-yellow-400/30 to-red-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative glass-card rounded-2xl p-8 text-center border-2 border-yellow-500/20 group-hover:border-yellow-500/50 transition-all group-hover:shadow-xl">
               <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform border-2 border-yellow-400">
-                <span className="text-3xl">📋</span>
+                <ClipboardIcon className="w-8 h-8 text-white" />
               </div>
               <p className="text-red-800 font-bold text-lg mb-1">ประวัติทั้งหมด</p>
               <p className="text-gray-500 text-sm">ดูรายการหมุนทั้งหมด</p>
@@ -129,7 +131,7 @@ export function Dashboard() {
               <div className="relative glass-card rounded-2xl p-8 border-2 border-yellow-500/30">
                 <div className="flex items-center gap-6">
                   <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg border-2 border-yellow-400">
-                    <span className="text-3xl">🎯</span>
+                    <TargetIcon className="w-8 h-8 text-white" />
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm font-medium mb-1">จำนวนหมุนทั้งหมด</p>
@@ -145,11 +147,30 @@ export function Dashboard() {
               <div className="relative glass-card rounded-2xl p-8 border-2 border-yellow-500/30">
                 <div className="flex items-center gap-6">
                   <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg border-2 border-yellow-400">
-                    <span className="text-3xl">👥</span>
+                    <UsersIcon className="w-8 h-8 text-white" />
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm font-medium mb-1">ผู้เข้าร่วมทั้งหมด</p>
                     <p className="text-4xl font-bold text-red-700">{stats.totalUsers.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Total Donations */}
+            <div className="relative md:col-span-2">
+              <div className="absolute inset-0 rounded-2xl bg-pink-400/20 blur-xl" />
+              <div className="relative glass-card rounded-2xl p-8 border-2 border-pink-500/30">
+                <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-500 to-pink-700 flex items-center justify-center shadow-lg border-2 border-pink-300">
+                    <HeartIcon className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-sm font-medium mb-1">จำนวนบริจาค</p>
+                    <p className="text-4xl font-bold text-pink-700">{stats.totalDonations.toLocaleString()} <span className="text-lg">ครั้ง</span></p>
+                    {stats.totalDonationAmount > 0 && (
+                      <p className="text-pink-500 font-bold mt-1">รวม {stats.totalDonationAmount.toLocaleString()} บาท</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -161,7 +182,7 @@ export function Dashboard() {
                 <div className="absolute inset-0 rounded-2xl bg-yellow-400/10 blur-xl" />
                 <div className="relative glass-card rounded-2xl p-8 border-2 border-yellow-500/30">
                   <div className="flex items-center gap-4 mb-6">
-                    <span className="text-2xl">🏆</span>
+                    <TrophyIcon className="w-7 h-7 text-yellow-500" />
                     <h3 className="text-red-800 font-bold text-lg">รางวัลที่ออก</h3>
                   </div>
                   <div className="space-y-3">

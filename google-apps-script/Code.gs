@@ -12,7 +12,7 @@
  */
 
 // ===== CONFIG =====
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+const SPREADSHEET_ID = '11gr5XWp9TiTUEAffJNyjPuG6DZpYcbFPt34pcN7-cws';
 const DEFAULT_SPINS = 1; // จำนวนสิทธิ์หมุนเริ่มต้น
 const ADMIN_PASSWORD = 'admin1234'; // รหัสผ่าน Admin
 
@@ -60,6 +60,9 @@ function handleRequest(e) {
         break;
       case 'getAllHistory':
         result = getAllHistory();
+        break;
+      case 'donatePrize':
+        result = donatePrize(e.parameter.historyId, parseFloat(e.parameter.amount) || 0);
         break;
       case 'getStats':
         result = getStats();
@@ -293,7 +296,8 @@ function getPrizes() {
         probability: parseFloat(row[4]) || 0,
         quantity: parseInt(row[5]) || -1,
         is_active: row[6],
-        color: row[7] || '#3b82f6'
+        color: row[7] || '#3b82f6',
+        is_donatable: row[8] !== false
       });
     }
   }
@@ -314,7 +318,8 @@ function addPrize(prizeData) {
     prizeData.probability || 10,
     prizeData.quantity !== undefined ? prizeData.quantity : -1,
     prizeData.is_active !== false,
-    prizeData.color || '#3b82f6'
+    prizeData.color || '#3b82f6',
+    prizeData.is_donatable !== false
   ]);
 
   return { success: true, prize: { ...prizeData, id: newId.toString() } };
@@ -334,6 +339,7 @@ function updatePrize(prizeData) {
       sheet.getRange(row, 6).setValue(prizeData.quantity !== undefined ? prizeData.quantity : -1);
       sheet.getRange(row, 7).setValue(prizeData.is_active !== false);
       sheet.getRange(row, 8).setValue(prizeData.color || '#3b82f6');
+      sheet.getRange(row, 9).setValue(prizeData.is_donatable !== false);
       return { success: true };
     }
   }
@@ -434,14 +440,32 @@ function spin(userId) {
     employeeId,
     selectedPrize.id,
     selectedPrize.name,
-    new Date()
+    new Date(),
+    'claimed'
   ]);
 
   return {
     success: true,
     prize: selectedPrize,
-    spinsRemaining: spinsRemaining - 1
+    spinsRemaining: spinsRemaining - 1,
+    historyId: newHistoryId.toString()
   };
+}
+
+function donatePrize(historyId, amount) {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('spin_history');
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0].toString() === historyId.toString()) {
+      sheet.getRange(i + 1, 8).setValue('donated');
+      sheet.getRange(i + 1, 9).setValue(amount || 0);
+      return { success: true };
+    }
+  }
+
+  return { success: false, error: 'ไม่พบรายการ' };
 }
 
 function getHistory(userId) {
@@ -458,7 +482,9 @@ function getHistory(userId) {
         employee_id: data[i][3],
         prize_id: data[i][4].toString(),
         prize_name: data[i][5],
-        spun_at: data[i][6] ? new Date(data[i][6]).toISOString() : ''
+        spun_at: data[i][6] ? new Date(data[i][6]).toISOString() : '',
+        status: data[i][7] || 'claimed',
+        donation_amount: parseFloat(data[i][8]) || 0
       });
     }
   }
@@ -483,7 +509,9 @@ function getAllHistory() {
         employee_id: data[i][3],
         prize_id: data[i][4].toString(),
         prize_name: data[i][5],
-        spun_at: data[i][6] ? new Date(data[i][6]).toISOString() : ''
+        spun_at: data[i][6] ? new Date(data[i][6]).toISOString() : '',
+        status: data[i][7] || 'claimed',
+        donation_amount: parseFloat(data[i][8]) || 0
       });
     }
   }
@@ -506,12 +534,18 @@ function getStats() {
   const historyData = historySheet.getDataRange().getValues();
   const spinCount = Math.max(0, historyData.length - 1);
 
-  // สถิติรางวัล
+  // สถิติรางวัล + บริจาค
   const prizeStats = {};
+  var totalDonations = 0;
+  var totalDonationAmount = 0;
   for (let i = 1; i < historyData.length; i++) {
     const prizeName = historyData[i][5];
     if (prizeName) {
       prizeStats[prizeName] = (prizeStats[prizeName] || 0) + 1;
+    }
+    if (historyData[i][7] === 'donated') {
+      totalDonations++;
+      totalDonationAmount += parseFloat(historyData[i][8]) || 0;
     }
   }
 
@@ -520,6 +554,8 @@ function getStats() {
     stats: {
       totalSpins: spinCount,
       totalUsers: userCount,
+      totalDonations: totalDonations,
+      totalDonationAmount: totalDonationAmount,
       prizeStats: prizeStats
     }
   };
@@ -538,7 +574,7 @@ function setupSheets() {
   if (!prizeSheet) {
     prizeSheet = ss.insertSheet('prizes');
   }
-  prizeSheet.getRange(1, 1, 1, 8).setValues([['id', 'name', 'description', 'image_url', 'probability', 'quantity', 'is_active', 'color']]);
+  prizeSheet.getRange(1, 1, 1, 9).setValues([['id', 'name', 'description', 'image_url', 'probability', 'quantity', 'is_active', 'color', 'is_donatable']]);
 
   // Users sheet
   let userSheet = ss.getSheetByName('users');
@@ -552,7 +588,7 @@ function setupSheets() {
   if (!historySheet) {
     historySheet = ss.insertSheet('spin_history');
   }
-  historySheet.getRange(1, 1, 1, 7).setValues([['id', 'user_id', 'user_name', 'employee_id', 'prize_id', 'prize_name', 'spun_at']]);
+  historySheet.getRange(1, 1, 1, 9).setValues([['id', 'user_id', 'user_name', 'employee_id', 'prize_id', 'prize_name', 'spun_at', 'status', 'donation_amount']]);
 
   // Allowed employees sheet
   let allowedSheet = ss.getSheetByName('allowed_employees');
@@ -569,13 +605,13 @@ function setupSheets() {
   settingsSheet.getRange(1, 1, 1, 2).setValues([['key', 'value']]);
 
   // Add sample prizes
-  prizeSheet.getRange(2, 1, 6, 8).setValues([
-    ['1', 'อั่งเปา 888', 'อั่งเปามงคล', '', 5, 1, true, '#c41e3a'],
-    ['2', 'ทองคำ 1 สลึง', 'ทองคำแท้', '', 5, 2, true, '#ffd700'],
-    ['3', 'อั่งเปา 168', 'เลขมงคล', '', 15, 10, true, '#8b0000'],
-    ['4', 'ส่วนลด 20%', 'คูปองส่วนลด', '', 25, -1, true, '#daa520'],
-    ['5', 'ส้มมงคล', 'ส้มโชคดี', '', 25, -1, true, '#b22222'],
-    ['6', 'ลองใหม่นะ', 'โชคดีครั้งหน้า', '', 25, -1, true, '#cd853f']
+  prizeSheet.getRange(2, 1, 6, 9).setValues([
+    ['1', 'อั่งเปา 888', 'อั่งเปามงคล', '', 5, 1, true, '#c41e3a', true],
+    ['2', 'ทองคำ 1 สลึง', 'ทองคำแท้', '', 5, 2, true, '#ffd700', true],
+    ['3', 'อั่งเปา 168', 'เลขมงคล', '', 15, 10, true, '#8b0000', true],
+    ['4', 'ส่วนลด 20%', 'คูปองส่วนลด', '', 25, -1, true, '#daa520', false],
+    ['5', 'ส้มมงคล', 'ส้มโชคดี', '', 25, -1, true, '#b22222', false],
+    ['6', 'ลองใหม่นะ', 'โชคดีครั้งหน้า', '', 25, -1, true, '#cd853f', false]
   ]);
 
   // Add sample allowed employees

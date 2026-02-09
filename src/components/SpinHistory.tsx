@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { SpinHistory as SpinHistoryType } from '../types';
 import { api } from '../services/api';
-// import { RedEnvelopeIcon, WheelIcon, ClockIcon, SparkleIcon } from './icons';
+import { RedEnvelopeIcon, SpinIcon, ClockIcon, SparklesIcon, HeartIcon } from './icons';
 
 interface SpinHistoryProps {
   userId: string;
@@ -48,7 +48,7 @@ export function SpinHistory({ userId }: SpinHistoryProps) {
       <div className="relative">
         <div className="absolute inset-0 rounded-2xl bg-yellow-500/20 blur-xl" />
         <div className="relative glass-card rounded-2xl p-12 text-center border-2 border-yellow-500/30">
-          <span className="text-5xl mb-4 block">🎰</span>
+          <SpinIcon className="w-12 h-12 text-red-500 mb-4 mx-auto" />
           <p className="text-red-700 font-bold text-lg">ยังไม่มีประวัติการหมุน</p>
           <p className="text-gray-500 text-sm mt-2">ลองหมุนวงล้อดูสิ!</p>
         </div>
@@ -63,7 +63,7 @@ export function SpinHistory({ userId }: SpinHistoryProps) {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg border-2 border-yellow-400">
-            <span className="text-2xl">🧧</span>
+            <RedEnvelopeIcon className="w-8 h-8 text-red-400" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-red-800">รายการรางวัลที่ได้รับ</h3>
@@ -88,16 +88,27 @@ export function SpinHistory({ userId }: SpinHistoryProps) {
 
                 {/* Prize info */}
                 <div className="flex-grow">
-                  <p className="text-red-800 font-bold text-lg">{item.prize_name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-red-800 font-bold text-lg">{item.prize_name}</p>
+                    {item.status === 'donated' && (
+                      <span className="text-xs font-bold text-pink-600 bg-pink-100 px-2 py-0.5 rounded-full border border-pink-300">
+                        บริจาค {item.donation_amount ? `${item.donation_amount.toLocaleString()} บาท` : ''}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-500 text-sm mt-1 flex items-center gap-2">
-                    <span>🕐</span>
+                    <ClockIcon className="w-4 h-4 text-gray-400" />
                     {formatDate(item.spun_at)}
                   </p>
                 </div>
 
                 {/* Lucky icon */}
-                <div className="flex-shrink-0 text-3xl">
-                  🎊
+                <div className="flex-shrink-0">
+                  {item.status === 'donated' ? (
+                    <HeartIcon className="w-8 h-8 text-pink-500" />
+                  ) : (
+                    <SparklesIcon className="w-8 h-8 text-yellow-500" />
+                  )}
                 </div>
               </div>
             </div>

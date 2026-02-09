@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { fetchAllowedEmployees, saveAllowedEmployees } from '../../services/api';
-// import { UsersIcon, LockIcon, ClipboardIcon, DocumentIcon, TrashIcon, PlusIcon, MinusIcon, CheckCircleIcon, CloseIcon, InboxIcon } from '../../components/icons';
+import { UsersIcon, LockIcon, ClipboardIcon, FileTextIcon, TrashIcon, PlusIcon, MinusIcon, CheckIcon, XIcon, InboxIcon } from '../../components/icons';
 
 export function EmployeeManager() {
   const { isAdmin } = useAuth();
@@ -91,7 +91,7 @@ export function EmployeeManager() {
         <div className="relative">
           <div className="absolute inset-0 rounded-2xl bg-red-500/30 blur-xl" />
           <div className="relative glass-card rounded-2xl p-10 text-center border-2 border-yellow-500/30">
-            <span className="text-4xl mb-4 block">🔒</span>
+            <LockIcon className="w-10 h-10 text-red-500 mb-4 mx-auto" />
             <p className="text-red-700 font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
             <Link to="/" className="px-8 py-3 btn-premium rounded-xl inline-block font-bold">
               กลับหน้าหลัก
@@ -109,7 +109,7 @@ export function EmployeeManager() {
         <div className="flex items-center justify-between mb-10">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-3xl">👥</span>
+              <UsersIcon className="w-8 h-8 text-red-500" />
               <h1 className="text-3xl font-bold">
                 <span className="gold-shimmer">จัดการรหัสพนักงาน</span>
               </h1>
@@ -133,7 +133,7 @@ export function EmployeeManager() {
         )}
         {saved && !saving && (
           <div className="mb-6 bg-green-50 border-2 border-green-400 text-green-700 px-6 py-4 rounded-xl flex items-center justify-center gap-3 shadow-lg">
-            <span className="text-xl">✅</span>
+            <CheckIcon className="w-6 h-6 text-green-500" />
             <span className="font-bold">บันทึกเรียบร้อยแล้ว</span>
           </div>
         )}
@@ -144,7 +144,7 @@ export function EmployeeManager() {
           <div className="relative glass-card rounded-2xl p-6 border-2 border-yellow-500/30">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg border-2 border-yellow-400">
-                <span className="text-2xl">📋</span>
+                <ClipboardIcon className="w-7 h-7 text-white" />
               </div>
               <div>
                 <p className="text-red-700 font-medium">
@@ -192,7 +192,7 @@ export function EmployeeManager() {
             onClick={() => setShowBulkInput(!showBulkInput)}
             className="text-yellow-300 font-bold hover:text-yellow-200 transition-colors flex items-center gap-2"
           >
-            {showBulkInput ? '➖ ซ่อน' : '➕ เพิ่มหลายรหัสพร้อมกัน'}
+            {showBulkInput ? <><MinusIcon className="w-5 h-5 inline" /> ซ่อน</> : <><PlusIcon className="w-5 h-5 inline" /> เพิ่มหลายรหัสพร้อมกัน</>}
           </button>
         </div>
 
@@ -228,7 +228,7 @@ export function EmployeeManager() {
           <div className="relative glass-card rounded-2xl p-6 border-2 border-yellow-500/20">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-red-800 font-bold text-lg flex items-center gap-2">
-                <span>📝</span> รายชื่อรหัสพนักงาน
+                <FileTextIcon className="w-5 h-5 text-red-600" /> รายชื่อรหัสพนักงาน
               </h3>
               {employees.length > 0 && (
                 <button
@@ -236,7 +236,7 @@ export function EmployeeManager() {
                   disabled={saving}
                   className="text-red-500 font-bold hover:text-red-600 disabled:opacity-50 transition-colors flex items-center gap-2"
                 >
-                  🗑️ ล้างทั้งหมด
+                  <TrashIcon className="w-4 h-4" /> ล้างทั้งหมด
                 </button>
               )}
             </div>
@@ -248,7 +248,7 @@ export function EmployeeManager() {
               </div>
             ) : employees.length === 0 ? (
               <div className="text-center py-12">
-                <span className="text-5xl mb-4 block">📭</span>
+                <InboxIcon className="w-12 h-12 text-gray-300 mb-4 mx-auto" />
                 <p className="text-gray-400 font-medium">ยังไม่มีรายชื่อ</p>
                 <p className="text-gray-400 text-sm mt-1">(ทุกคนสามารถเข้าร่วมได้)</p>
               </div>
@@ -266,7 +266,7 @@ export function EmployeeManager() {
                         disabled={saving}
                         className="text-gray-400 hover:text-red-500 disabled:opacity-50 transition-colors opacity-0 group-hover:opacity-100"
                       >
-                        ❌
+                        <XIcon className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
