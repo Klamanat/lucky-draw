@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { SpinHistory as SpinHistoryType } from '../types';
 import { api } from '../services/api';
-import { RedEnvelopeIcon, WheelIcon, ClockIcon, SparkleIcon } from './icons';
+// import { RedEnvelopeIcon, WheelIcon, ClockIcon, SparkleIcon } from './icons';
 
 interface SpinHistoryProps {
   userId: string;

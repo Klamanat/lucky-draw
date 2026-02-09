@@ -1,7 +1,7 @@
 import { useAuth } from '../hooks/useAuth';
 import { SpinHistory } from '../components/SpinHistory';
 import { Link } from 'react-router-dom';
-import { LockIcon, ScrollIcon } from '../components/icons';
+// import { LockIcon, ScrollIcon } from '../components/icons';
 
 export function History() {
   const { user, isLoggedIn } = useAuth();

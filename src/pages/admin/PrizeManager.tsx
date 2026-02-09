@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Prize } from '../../types';
 import { api } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import { LockIcon, GiftIcon, PlusIcon, ChartIcon, BoxIcon, EditIcon, TrashIcon, SaveIcon } from '../../components/icons';
+// import { LockIcon, GiftIcon, PlusIcon, ChartIcon, BoxIcon, EditIcon, TrashIcon, SaveIcon } from '../../components/icons';
 
 const DEFAULT_COLORS = ['#DC143C', '#FFD700', '#8B0000', '#FFA500', '#B22222', '#D4AF37'];
 
@@ -275,9 +275,8 @@ export function PrizeManager() {
                         <button
                           key={color}
                           onClick={() => setEditingPrize({ ...editingPrize, color })}
-                          className={`w-12 h-12 rounded-xl transition-transform hover:scale-110 border-2 ${
-                            editingPrize.color === color ? 'ring-4 ring-yellow-300 ring-offset-2 ring-offset-red-700 scale-110 border-yellow-400' : 'border-white/30'
-                          }`}
+                          className={`w-12 h-12 rounded-xl transition-transform hover:scale-110 border-2 ${editingPrize.color === color ? 'ring-4 ring-yellow-300 ring-offset-2 ring-offset-red-700 scale-110 border-yellow-400' : 'border-white/30'
+                            }`}
                           style={{ background: `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -30)} 100%)` }}
                         />
                       ))}

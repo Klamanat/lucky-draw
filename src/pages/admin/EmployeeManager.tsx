@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { fetchAllowedEmployees, saveAllowedEmployees } from '../../services/api';
-import { UsersIcon, LockIcon, ClipboardIcon, DocumentIcon, TrashIcon, PlusIcon, MinusIcon, CheckCircleIcon, CloseIcon, InboxIcon } from '../../components/icons';
+// import { UsersIcon, LockIcon, ClipboardIcon, DocumentIcon, TrashIcon, PlusIcon, MinusIcon, CheckCircleIcon, CloseIcon, InboxIcon } from '../../components/icons';
 
 export function EmployeeManager() {
   const { isAdmin } = useAuth();

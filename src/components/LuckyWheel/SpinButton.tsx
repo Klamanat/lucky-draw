@@ -1,4 +1,4 @@
-import { TargetIcon } from '../icons';
+// import { TargetIcon } from '../icons';
 
 interface SpinButtonProps {
   onClick: () => void;

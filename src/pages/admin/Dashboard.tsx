@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import { LanternIcon, LockIcon, GiftIcon, UsersIcon, ClipboardIcon, TargetIcon, TrophyIcon, HomeIcon } from '../../components/icons';
+// import { LanternIcon, LockIcon, GiftIcon, UsersIcon, ClipboardIcon, TargetIcon, TrophyIcon, HomeIcon } from '../../components/icons';
 
 interface Stats {
   totalSpins: number;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Prize } from '../types';
-import { RedEnvelopeIcon, CheckCircleIcon } from './icons';
+// import { RedEnvelopeIcon, CheckCircleIcon } from './icons';
 
 interface PrizePopupProps {
   prize: Prize;

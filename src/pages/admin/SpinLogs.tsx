@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { SpinHistory } from '../../types';
 import { api } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import { LockIcon, ClipboardIcon, GiftIcon, ClockIcon, InboxIcon } from '../../components/icons';
+// import { LockIcon, ClipboardIcon, GiftIcon, ClockIcon, InboxIcon } from '../../components/icons';
 
 export function SpinLogs() {
   const { isAdmin } = useAuth();
@@ -103,9 +103,8 @@ export function SpinLogs() {
                 {history.map((item, index) => (
                   <div
                     key={item.id}
-                    className={`px-6 py-4 grid grid-cols-12 gap-4 items-center transition-colors hover:bg-yellow-50/50 ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-red-50/30'
-                    }`}
+                    className={`px-6 py-4 grid grid-cols-12 gap-4 items-center transition-colors hover:bg-yellow-50/50 ${index % 2 === 0 ? 'bg-white' : 'bg-red-50/30'
+                      }`}
                   >
                     <div className="col-span-2">
                       <span className="font-mono text-sm font-bold text-red-700 bg-yellow-100 px-2 py-1 rounded border border-yellow-300">
