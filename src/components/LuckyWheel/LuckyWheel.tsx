@@ -28,64 +28,108 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
 
     const segmentCenter = targetIndex * segmentAngle + segmentAngle / 2;
     const targetAngle = 360 - segmentCenter;
-    const totalRotation = rotation + (360 * 8) + targetAngle + (Math.random() * 10 - 5);
+    const totalRotation = rotation + (360 * 10) + targetAngle + (Math.random() * 10 - 5);
 
     setRotation(totalRotation);
 
     setTimeout(() => {
       setIsSpinning(false);
       onSpinEnd(prizes[targetIndex]);
-    }, 5000);
+    }, 6000);
   };
 
   return (
-    <div className="relative w-[300px] h-[300px] md:w-[360px] md:h-[360px]">
-      {/* Outer glow */}
+    <div className="relative w-[320px] h-[320px] md:w-[400px] md:h-[400px]">
+      {/* Outer glow effect */}
       <div
-        className="absolute -inset-8 rounded-full"
+        className="absolute -inset-16 rounded-full animate-glow-pulse"
         style={{
-          background: 'radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(212,175,55,0.4) 0%, rgba(212,175,55,0.1) 40%, transparent 70%)',
         }}
       />
 
-      {/* Gold outer ring */}
+      {/* Premium outer ring with lights */}
+      <div className="absolute -inset-6 rounded-full" style={{
+        background: 'linear-gradient(180deg, #2d1810 0%, #1a0a05 100%)',
+        boxShadow: 'inset 0 2px 10px rgba(255,255,255,0.1), 0 10px 40px rgba(0,0,0,0.5)',
+      }}>
+        {/* Decorative lights around edge */}
+        {Array.from({ length: 24 }).map((_, i) => {
+          const angle = (i * 15 - 90) * (Math.PI / 180);
+          const x = 50 + 47 * Math.cos(angle);
+          const y = 50 + 47 * Math.sin(angle);
+          const isEven = i % 2 === 0;
+          return (
+            <div
+              key={`light-${i}`}
+              className="absolute rounded-full"
+              style={{
+                width: '8px',
+                height: '8px',
+                left: `${x}%`,
+                top: `${y}%`,
+                transform: 'translate(-50%, -50%)',
+                background: isSpinning
+                  ? (isEven ? '#FFD700' : '#FF4444')
+                  : (isEven ? '#D4AF37' : '#CC3333'),
+                boxShadow: isSpinning
+                  ? `0 0 10px ${isEven ? '#FFD700' : '#FF4444'}, 0 0 20px ${isEven ? 'rgba(255,215,0,0.5)' : 'rgba(255,68,68,0.5)'}`
+                  : `0 0 5px ${isEven ? '#D4AF37' : '#CC3333'}`,
+                animation: isSpinning ? `glow-pulse 0.3s ease-in-out infinite ${i * 0.05}s` : 'none',
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {/* Gold ring */}
       <div
-        className="absolute -inset-4 rounded-full"
+        className="absolute -inset-3 rounded-full"
         style={{
-          background: 'linear-gradient(180deg, #FFD700 0%, #FFC107 30%, #FF9800 70%, #F57C00 100%)',
-          boxShadow: '0 4px 20px rgba(255,152,0,0.5)',
+          background: 'linear-gradient(180deg, #F5E6A3 0%, #D4AF37 30%, #B8860B 70%, #8B6914 100%)',
+          boxShadow: '0 4px 20px rgba(212,175,55,0.4), inset 0 2px 4px rgba(255,255,255,0.3)',
         }}
       />
 
-      {/* White inner ring */}
+      {/* Inner dark ring */}
       <div
-        className="absolute -inset-2 rounded-full bg-white"
+        className="absolute -inset-1 rounded-full"
         style={{
-          boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.1)',
+          background: 'linear-gradient(180deg, #3d2010 0%, #2d1508 100%)',
+          boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.5)',
         }}
       />
 
       {/* Pointer */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-5 z-20">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-8 z-20">
         <div
-          className="w-8 h-10 relative"
+          className="w-10 h-14 relative"
           style={{
-            filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.3))',
+            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))',
           }}
         >
+          {/* Main pointer */}
           <div
             className="w-full h-full"
             style={{
-              background: 'linear-gradient(180deg, #FF5252 0%, #D32F2F 100%)',
+              background: 'linear-gradient(180deg, #FFD700 0%, #D4AF37 50%, #B8860B 100%)',
+              clipPath: 'polygon(50% 100%, 0% 0%, 100% 0%)',
+            }}
+          />
+          {/* Pointer highlight */}
+          <div
+            className="absolute top-0 left-0 w-full h-1/2"
+            style={{
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
               clipPath: 'polygon(50% 100%, 0% 0%, 100% 0%)',
             }}
           />
           {/* Gold circle on pointer */}
           <div
-            className="absolute top-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full"
+            className="absolute top-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full"
             style={{
-              background: 'linear-gradient(180deg, #FFD700 0%, #FFC107 100%)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+              background: 'linear-gradient(180deg, #8B0000 0%, #5C0000 100%)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.2)',
             }}
           />
         </div>
@@ -93,31 +137,37 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
 
       {/* Main Wheel */}
       <div
-        className="w-full h-full rounded-full overflow-hidden bg-white"
+        className="w-full h-full rounded-full overflow-hidden"
         style={{
           transform: `rotate(${rotation}deg)`,
-          transition: isSpinning ? 'transform 5s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none',
-          boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)',
+          transition: isSpinning ? 'transform 6s cubic-bezier(0.15, 0.85, 0.15, 1)' : 'none',
+          boxShadow: 'inset 0 0 30px rgba(0,0,0,0.2)',
         }}
       >
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>
-            {/* Bright red gradient */}
-            <linearGradient id="red-segment" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FF6B6B" />
-              <stop offset="50%" stopColor="#EE5A5A" />
-              <stop offset="100%" stopColor="#E53935" />
+            {/* Premium red gradient */}
+            <linearGradient id="premium-red" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#C41E3A" />
+              <stop offset="50%" stopColor="#A01830" />
+              <stop offset="100%" stopColor="#8B0000" />
             </linearGradient>
-            {/* Cream/off-white gradient */}
-            <linearGradient id="cream-segment" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FFFAF0" />
-              <stop offset="50%" stopColor="#FFF8E7" />
-              <stop offset="100%" stopColor="#FFECB3" />
+            {/* Premium gold/cream gradient */}
+            <linearGradient id="premium-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#FFF8DC" />
+              <stop offset="50%" stopColor="#F5E6A3" />
+              <stop offset="100%" stopColor="#E8D48B" />
             </linearGradient>
             {/* Center gradient */}
-            <radialGradient id="center-bg" cx="50%" cy="50%">
-              <stop offset="0%" stopColor="#FFFFFF" />
-              <stop offset="100%" stopColor="#F5F5F5" />
+            <radialGradient id="center-gradient" cx="50%" cy="30%">
+              <stop offset="0%" stopColor="#FFD700" />
+              <stop offset="50%" stopColor="#D4AF37" />
+              <stop offset="100%" stopColor="#B8860B" />
+            </radialGradient>
+            {/* Center inner */}
+            <radialGradient id="center-inner" cx="50%" cy="30%">
+              <stop offset="0%" stopColor="#C41E3A" />
+              <stop offset="100%" stopColor="#8B0000" />
             </radialGradient>
           </defs>
 
@@ -147,21 +197,21 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
               <g key={prize.id}>
                 <path
                   d={pathD}
-                  fill={isRed ? 'url(#red-segment)' : 'url(#cream-segment)'}
-                  stroke="#FFD700"
-                  strokeWidth="0.5"
+                  fill={isRed ? 'url(#premium-red)' : 'url(#premium-gold)'}
+                  stroke="#D4AF37"
+                  strokeWidth="0.3"
                 />
                 <text
                   x={textX}
                   y={textY}
-                  fill={isRed ? '#FFFFFF' : '#C62828'}
-                  fontSize="3.2"
+                  fill={isRed ? '#FFF8DC' : '#8B0000'}
+                  fontSize="3.5"
                   fontWeight="bold"
                   textAnchor="middle"
                   dominantBaseline="middle"
                   transform={`rotate(${midAngle + 90}, ${textX}, ${textY})`}
                   style={{
-                    textShadow: isRed ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                    textShadow: isRed ? '0 1px 2px rgba(0,0,0,0.5)' : 'none',
                   }}
                 >
                   {truncateText(prize.name, 6)}
@@ -171,8 +221,8 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
           })}
 
           {/* Gold dots around edge */}
-          {Array.from({ length: prizes.length * 2 }).map((_, i) => {
-            const angle = (i * (360 / (prizes.length * 2)) - 90) * (Math.PI / 180);
+          {Array.from({ length: prizes.length * 3 }).map((_, i) => {
+            const angle = (i * (360 / (prizes.length * 3)) - 90) * (Math.PI / 180);
             const x = 50 + 45 * Math.cos(angle);
             const y = 50 + 45 * Math.sin(angle);
             return (
@@ -180,23 +230,34 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
                 key={`dot-${i}`}
                 cx={x}
                 cy={y}
-                r="1"
+                r="0.8"
                 fill="#FFD700"
+                opacity="0.8"
               />
             );
           })}
 
-          {/* Center circle - white with gold border */}
-          <circle cx="50" cy="50" r="14" fill="url(#center-bg)" stroke="#FFD700" strokeWidth="2" />
-          <circle cx="50" cy="50" r="10" fill="#E53935" />
+          {/* Outer center ring (gold) */}
+          <circle cx="50" cy="50" r="16" fill="url(#center-gradient)" />
+          <circle cx="50" cy="50" r="14" fill="#2d1810" />
+          <circle cx="50" cy="50" r="12" fill="url(#center-gradient)" />
+
+          {/* Inner center (red) */}
+          <circle cx="50" cy="50" r="10" fill="url(#center-inner)" />
+
+          {/* Center highlight */}
+          <ellipse cx="50" cy="47" rx="6" ry="4" fill="rgba(255,255,255,0.15)" />
+
+          {/* SPIN text */}
           <text
             x="50"
             y="50.5"
             fill="#FFD700"
-            fontSize="6"
+            fontSize="5"
             fontWeight="bold"
             textAnchor="middle"
             dominantBaseline="middle"
+            style={{ letterSpacing: '1px' }}
           >
             SPIN
           </text>
@@ -205,12 +266,19 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
 
       {/* Disabled overlay */}
       {disabled && (
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
-          <div className="glass-card px-6 py-3 rounded-lg shadow-lg">
-            <span className="text-gray-700 font-medium text-sm">หมดสิทธิ์หมุน</span>
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center">
+          <div className="glass-card px-8 py-4 rounded-xl shadow-2xl border border-amber-500/20">
+            <span className="text-gray-700 font-semibold">หมดสิทธิ์หมุน</span>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes glow-pulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

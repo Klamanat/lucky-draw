@@ -10,8 +10,11 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        {/* Decorative gold line at top */}
-        <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-600/50 to-transparent z-50" />
+        {/* Premium decorative line at top */}
+        <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+          <div className="h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-amber-300/30 to-transparent" />
+        </div>
 
         <Routes>
           <Route path="/" element={<Home />} />
@@ -22,8 +25,11 @@ function App() {
           <Route path="/admin/employees" element={<EmployeeManager />} />
         </Routes>
 
-        {/* Decorative gold line at bottom */}
-        <div className="fixed bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-600/50 to-transparent z-50" />
+        {/* Premium decorative line at bottom */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+          <div className="h-px bg-gradient-to-r from-transparent via-amber-300/30 to-transparent" />
+          <div className="h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+        </div>
       </div>
     </BrowserRouter>
   );

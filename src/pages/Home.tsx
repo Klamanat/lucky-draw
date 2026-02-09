@@ -47,9 +47,12 @@ export function Home() {
   if (authLoading || prizesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-3 border-amber-600/30 border-t-amber-600 rounded-full animate-spin" />
-          <p className="text-amber-100 text-base font-medium">กำลังโหลด...</p>
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-b-amber-300 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+          </div>
+          <p className="text-amber-100 text-lg font-medium tracking-wide">กำลังโหลด...</p>
         </div>
       </div>
     );
@@ -58,20 +61,21 @@ export function Home() {
   // Not logged in - show employee form
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 pt-12">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 py-16">
         {isDemoMode && (
-          <div className="fixed top-1 left-0 right-0 text-amber-200/60 text-center py-1 text-xs z-40">
-            Demo Mode
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 z-40">
+            <span className="text-amber-300 text-xs font-medium tracking-wide">Demo Mode</span>
           </div>
         )}
 
         {/* Logo/Title */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-amber-100 tracking-wide">
-            กิจกรรมหมุนวงล้อชิงโชค
+        <div className="text-center mb-10">
+          <div className="w-20 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mb-6" />
+          <h1 className="text-4xl md:text-5xl font-bold tracking-wide mb-4">
+            <span className="gold-shimmer">กิจกรรมหมุนวงล้อชิงโชค</span>
           </h1>
-          <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-4" />
-          <p className="text-amber-200/70 text-base mt-4">ลุ้นรับของรางวัลมากมาย</p>
+          <div className="w-32 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mt-6 mb-4" />
+          <p className="text-amber-200/80 text-lg font-medium">ลุ้นรับของรางวัลมากมาย</p>
         </div>
 
         <EmployeeForm
@@ -81,17 +85,19 @@ export function Home() {
         />
 
         {isDemoMode && (
-          <div className="mt-6 text-center space-y-2">
+          <div className="mt-8 text-center space-y-3">
             {getAllowedEmployees().length > 0 && (
-              <div className="glass-card rounded-lg p-3 inline-block">
-                <p className="text-gray-500 text-xs mb-1">รหัสพนักงานที่มีสิทธิ์:</p>
-                <p className="text-amber-700 text-xs font-mono">
+              <div className="glass-card-dark rounded-xl px-6 py-4 inline-block">
+                <p className="text-amber-300/70 text-xs mb-2 font-medium">รหัสพนักงานที่มีสิทธิ์</p>
+                <p className="text-amber-100 text-sm font-mono tracking-wider">
                   {getAllowedEmployees().slice(0, 5).join(', ')}
-                  {getAllowedEmployees().length > 5 && ` (+${getAllowedEmployees().length - 5})`}
+                  {getAllowedEmployees().length > 5 && (
+                    <span className="text-amber-400/60"> (+{getAllowedEmployees().length - 5})</span>
+                  )}
                 </p>
               </div>
             )}
-            <p className="text-amber-200/40 text-xs">
+            <p className="text-amber-300/40 text-xs tracking-wide">
               Admin: กรอกรหัส admin1234
             </p>
           </div>
@@ -102,38 +108,44 @@ export function Home() {
 
   // Logged in - show wheel
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 pt-12">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 py-16">
       {isDemoMode && (
-        <div className="fixed top-1 left-0 right-0 text-amber-200/60 text-center py-1 text-xs z-40">
-          Demo Mode
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 z-40">
+          <span className="text-amber-300 text-xs font-medium tracking-wide">Demo Mode</span>
         </div>
       )}
 
       {/* Header */}
-      <div className="w-full max-w-md flex justify-between items-center mb-6">
-        <div className="glass-card rounded-lg px-4 py-3 shadow-lg border border-amber-600/10">
-          <p className="text-gray-500 text-xs">ผู้เข้าร่วม</p>
-          <p className="text-gray-800 font-semibold">{user?.name}</p>
-          <p className="text-amber-700 text-xs font-mono">{user?.employee_id}</p>
+      <div className="w-full max-w-lg flex justify-between items-center mb-8">
+        {/* User info card */}
+        <div className="relative">
+          <div className="absolute inset-0 rounded-xl bg-amber-500/10 blur-lg" />
+          <div className="relative glass-card rounded-xl px-6 py-4 border border-amber-500/20">
+            <p className="text-gray-500 text-xs font-medium mb-1">ผู้เข้าร่วม</p>
+            <p className="text-gray-800 font-bold text-lg">{user?.name}</p>
+            <p className="text-amber-700 text-sm font-mono tracking-wider">{user?.employee_id}</p>
+          </div>
         </div>
-        <div className="flex gap-2">
+
+        {/* Action buttons */}
+        <div className="flex gap-3">
           <Link
             to="/history"
-            className="glass-card px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium shadow-md border border-gray-200"
+            className="glass-card px-5 py-3 text-gray-600 rounded-xl hover:bg-white/80 transition-all text-sm font-semibold border border-gray-200 hover:border-amber-500/30"
           >
             ประวัติ
           </Link>
           {user?.role === 'admin' && (
             <Link
               to="/admin"
-              className="btn-gold px-4 py-2 rounded-lg text-sm"
+              className="btn-gold px-5 py-3 rounded-xl text-sm font-semibold"
             >
               จัดการระบบ
             </Link>
           )}
           <button
             onClick={logout}
-            className="glass-card px-4 py-2 text-gray-500 rounded-lg hover:bg-gray-50 transition-all text-sm shadow-md border border-gray-200"
+            className="glass-card px-5 py-3 text-gray-500 rounded-xl hover:bg-white/80 transition-all text-sm font-semibold border border-gray-200 hover:border-red-300"
           >
             ออก
           </button>
@@ -141,11 +153,11 @@ export function Home() {
       </div>
 
       {/* Title */}
-      <div className="text-center mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-amber-100 tracking-wide">
-          หมุนวงล้อชิงโชค
+      <div className="text-center mb-10">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-wide">
+          <span className="gold-shimmer">หมุนวงล้อชิงโชค</span>
         </h1>
-        <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto mt-2" />
+        <div className="w-24 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mt-4" />
       </div>
 
       {/* Wheel */}
@@ -158,7 +170,7 @@ export function Home() {
             disabled={!user || user.spins_remaining <= 0}
           />
 
-          <div className="mt-8">
+          <div className="mt-10">
             <SpinButton
               onClick={handleSpin}
               spinning={spinning || !!targetPrizeId}
@@ -168,9 +180,17 @@ export function Home() {
           </div>
         </>
       ) : (
-        <div className="glass-card rounded-lg p-8 text-center shadow-lg border border-amber-600/10">
-          <p className="text-gray-700 font-medium">ยังไม่มีรางวัลในระบบ</p>
-          <p className="text-gray-500 text-sm mt-1">กรุณาติดต่อผู้ดูแลระบบ</p>
+        <div className="relative">
+          <div className="absolute inset-0 rounded-2xl bg-amber-500/10 blur-xl" />
+          <div className="relative glass-card rounded-2xl p-10 text-center border border-amber-500/20">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              </svg>
+            </div>
+            <p className="text-gray-700 font-semibold text-lg">ยังไม่มีรางวัลในระบบ</p>
+            <p className="text-gray-500 text-sm mt-2">กรุณาติดต่อผู้ดูแลระบบ</p>
+          </div>
         </div>
       )}
 
