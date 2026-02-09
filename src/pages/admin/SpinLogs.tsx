@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { SpinHistory } from '../../types';
 import { api } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import { LockIcon, ClipboardIcon, GiftIcon, ClockIcon, InboxIcon } from '../../components/icons';
 
 export function SpinLogs() {
   const { isAdmin } = useAuth();
@@ -30,12 +31,13 @@ export function SpinLogs() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="relative">
-          <div className="absolute inset-0 rounded-2xl bg-red-500/20 blur-xl" />
-          <div className="relative glass-card rounded-2xl p-10 text-center border border-red-500/20">
-            <p className="text-gray-700 font-semibold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
+          <div className="absolute inset-0 rounded-2xl bg-red-500/30 blur-xl" />
+          <div className="relative glass-card rounded-2xl p-10 text-center border-2 border-yellow-500/30">
+            <span className="text-4xl mb-4 block">🔒</span>
+            <p className="text-red-700 font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
             <Link
               to="/"
-              className="px-8 py-3 btn-premium rounded-xl inline-block font-semibold"
+              className="px-8 py-3 btn-premium rounded-xl inline-block font-bold"
             >
               กลับหน้าหลัก
             </Link>
@@ -51,18 +53,21 @@ export function SpinLogs() {
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
-            <h1 className="text-3xl font-bold">
-              <span className="gold-shimmer">ประวัติการหมุนทั้งหมด</span>
-            </h1>
-            <div className="w-16 h-1 bg-gradient-to-r from-amber-500 to-transparent mt-3" />
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-3xl">📋</span>
+              <h1 className="text-3xl font-bold">
+                <span className="gold-shimmer">ประวัติการหมุนทั้งหมด</span>
+              </h1>
+            </div>
+            <div className="w-20 h-1 bg-gradient-to-r from-yellow-400 to-transparent mt-2 ml-12" />
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-amber-300/70 text-sm font-medium">
+            <span className="text-yellow-300 text-sm font-bold bg-red-700/50 px-4 py-2 rounded-full border border-yellow-400">
               {history.length} รายการ
             </span>
             <Link
               to="/admin"
-              className="glass-card px-6 py-3 text-gray-600 rounded-xl hover:bg-white/80 font-semibold border border-gray-200 hover:border-amber-500/30 transition-all"
+              className="glass-card px-6 py-3 text-red-700 rounded-xl hover:bg-white/80 font-bold border-2 border-yellow-500/30 transition-all"
             >
               กลับ
             </Link>
@@ -71,57 +76,51 @@ export function SpinLogs() {
 
         {loading ? (
           <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-amber-500/10 blur-xl" />
-            <div className="relative glass-card rounded-2xl p-12 text-center border border-amber-500/10">
+            <div className="absolute inset-0 rounded-2xl bg-yellow-500/20 blur-xl" />
+            <div className="relative glass-card rounded-2xl p-12 text-center border-2 border-yellow-500/30">
               <div className="flex flex-col items-center gap-4">
-                <div className="relative">
-                  <div className="w-12 h-12 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
-                </div>
-                <p className="text-gray-500 font-medium">กำลังโหลดข้อมูล...</p>
+                <div className="w-12 h-12 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin" />
+                <p className="text-red-700 font-medium">กำลังโหลดข้อมูล...</p>
               </div>
             </div>
           </div>
         ) : (
           <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-amber-500/5 blur-xl" />
-            <div className="relative glass-card rounded-2xl overflow-hidden border border-amber-500/10">
+            <div className="absolute inset-0 rounded-2xl bg-yellow-500/10 blur-xl" />
+            <div className="relative glass-card rounded-2xl overflow-hidden border-2 border-yellow-500/30">
               {/* Table Header */}
-              <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 px-6 py-4">
+              <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 px-6 py-4 border-b-2 border-yellow-400">
                 <div className="grid grid-cols-12 gap-4">
-                  <div className="col-span-2 text-white text-sm font-bold tracking-wide">รหัสพนักงาน</div>
-                  <div className="col-span-3 text-white text-sm font-bold tracking-wide">ชื่อ</div>
-                  <div className="col-span-4 text-white text-sm font-bold tracking-wide">รางวัล</div>
-                  <div className="col-span-3 text-white text-sm font-bold tracking-wide">เวลา</div>
+                  <div className="col-span-2 text-yellow-300 text-sm font-bold tracking-wide">รหัสพนักงาน</div>
+                  <div className="col-span-3 text-yellow-300 text-sm font-bold tracking-wide">ชื่อ</div>
+                  <div className="col-span-4 text-yellow-300 text-sm font-bold tracking-wide">รางวัล</div>
+                  <div className="col-span-3 text-yellow-300 text-sm font-bold tracking-wide">เวลา</div>
                 </div>
               </div>
 
               {/* Table Body */}
-              <div className="divide-y divide-amber-100">
+              <div className="divide-y divide-yellow-200">
                 {history.map((item, index) => (
                   <div
                     key={item.id}
-                    className={`px-6 py-4 grid grid-cols-12 gap-4 items-center transition-colors hover:bg-amber-50/50 ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-amber-50/30'
+                    className={`px-6 py-4 grid grid-cols-12 gap-4 items-center transition-colors hover:bg-yellow-50/50 ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-red-50/30'
                     }`}
                   >
                     <div className="col-span-2">
-                      <span className="font-mono text-sm font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                      <span className="font-mono text-sm font-bold text-red-700 bg-yellow-100 px-2 py-1 rounded border border-yellow-300">
                         {item.employee_id}
                       </span>
                     </div>
-                    <div className="col-span-3 text-gray-700 font-medium">{item.user_name}</div>
+                    <div className="col-span-3 text-red-700 font-medium">{item.user_name}</div>
                     <div className="col-span-4">
-                      <span className="inline-flex items-center gap-2 text-amber-800 font-semibold bg-gradient-to-r from-amber-100 to-orange-100 px-3 py-1 rounded-lg border border-amber-200">
-                        <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                        </svg>
+                      <span className="inline-flex items-center gap-2 text-red-800 font-bold bg-gradient-to-r from-yellow-100 to-orange-100 px-3 py-1 rounded-lg border-2 border-yellow-300">
+                        <span>🎁</span>
                         {item.prize_name}
                       </span>
                     </div>
                     <div className="col-span-3 text-gray-500 text-sm flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <span>🕐</span>
                       {formatDate(item.spun_at)}
                     </div>
                   </div>
@@ -129,12 +128,8 @@ export function SpinLogs() {
 
                 {history.length === 0 && (
                   <div className="px-6 py-16 text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                    </div>
-                    <p className="text-gray-500 font-medium">ยังไม่มีประวัติการหมุน</p>
+                    <span className="text-5xl mb-4 block">📭</span>
+                    <p className="text-red-700 font-bold">ยังไม่มีประวัติการหมุน</p>
                   </div>
                 )}
               </div>

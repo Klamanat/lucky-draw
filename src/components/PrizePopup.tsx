@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Prize } from '../types';
+import { RedEnvelopeIcon, CheckCircleIcon } from './icons';
 
 interface PrizePopupProps {
   prize: Prize;
@@ -12,20 +13,23 @@ interface Confetti {
   delay: number;
   color: string;
   size: number;
+  shape: 'circle' | 'square' | 'star';
 }
 
 export function PrizePopup({ prize, onClose }: PrizePopupProps) {
   const [confetti, setConfetti] = useState<Confetti[]>([]);
 
   useEffect(() => {
-    // Generate confetti
-    const colors = ['#FFD700', '#FF6B6B', '#D4AF37', '#C41E3A', '#FFF8DC', '#B8860B'];
-    const particles: Confetti[] = Array.from({ length: 50 }, (_, i) => ({
+    // Generate CNY themed confetti
+    const colors = ['#FFD700', '#FF4444', '#FFA500', '#DC143C', '#FFEC8B', '#FF6347'];
+    const shapes: Array<'circle' | 'square' | 'star'> = ['circle', 'square', 'star'];
+    const particles: Confetti[] = Array.from({ length: 60 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       delay: Math.random() * 2,
       color: colors[Math.floor(Math.random() * colors.length)],
-      size: Math.random() * 8 + 4,
+      size: Math.random() * 10 + 5,
+      shape: shapes[Math.floor(Math.random() * shapes.length)],
     }));
     setConfetti(particles);
   }, []);
@@ -45,76 +49,75 @@ export function PrizePopup({ prize, onClose }: PrizePopupProps) {
               height: `${particle.size}px`,
               backgroundColor: particle.color,
               animationDelay: `${particle.delay}s`,
-              borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+              borderRadius: particle.shape === 'circle' ? '50%' : particle.shape === 'star' ? '0' : '2px',
               transform: `rotate(${Math.random() * 360}deg)`,
+              clipPath: particle.shape === 'star' ? 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' : 'none',
             }}
           />
         ))}
       </div>
 
-      {/* Background glow */}
+      {/* Festive glow */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div
-          className="w-[500px] h-[500px] rounded-full animate-pulse"
+          className="w-[600px] h-[600px] rounded-full"
           style={{
-            background: 'radial-gradient(circle, rgba(212,175,55,0.3) 0%, rgba(212,175,55,0.1) 40%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(255,215,0,0.4) 0%, rgba(255,0,0,0.2) 40%, transparent 70%)',
+            animation: 'pulse 2s ease-in-out infinite',
           }}
         />
       </div>
 
-      {/* Main card */}
+      {/* Main card - Red Envelope Style */}
       <div className="relative transform animate-bounce-in">
         {/* Outer glow */}
-        <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-amber-400/30 to-amber-600/20 blur-2xl" />
+        <div className="absolute -inset-6 rounded-3xl bg-gradient-to-b from-yellow-400/40 to-red-600/30 blur-2xl" />
 
-        <div className="relative glass-card rounded-2xl p-10 max-w-sm w-full text-center border border-amber-500/30 overflow-hidden">
+        <div className="relative bg-gradient-to-b from-red-500 via-red-600 to-red-700 rounded-2xl p-8 max-w-sm w-full text-center border-4 border-yellow-400 overflow-hidden shadow-2xl">
+          {/* Chinese pattern overlay */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `repeating-linear-gradient(45deg, #FFD700 0, #FFD700 1px, transparent 0, transparent 50%)`,
+              backgroundSize: '20px 20px',
+            }} />
+          </div>
+
           {/* Corner decorations */}
-          <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-amber-500/40 rounded-tl-2xl" />
-          <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-amber-500/40 rounded-tr-2xl" />
-          <div className="absolute bottom-0 left-0 w-20 h-20 border-b-2 border-l-2 border-amber-500/40 rounded-bl-2xl" />
-          <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-amber-500/40 rounded-br-2xl" />
+          <div className="absolute top-2 left-2 w-12 h-12 border-t-4 border-l-4 border-yellow-400 rounded-tl-xl" />
+          <div className="absolute top-2 right-2 w-12 h-12 border-t-4 border-r-4 border-yellow-400 rounded-tr-xl" />
+          <div className="absolute bottom-2 left-2 w-12 h-12 border-b-4 border-l-4 border-yellow-400 rounded-bl-xl" />
+          <div className="absolute bottom-2 right-2 w-12 h-12 border-b-4 border-r-4 border-yellow-400 rounded-br-xl" />
 
-          {/* Top accent */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-1.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent rounded-full" />
-
-          {/* Sparkle effects */}
-          <div className="absolute top-6 left-6 w-3 h-3">
-            <div className="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-75" />
-            <div className="absolute inset-0 bg-amber-300 rounded-full" />
-          </div>
-          <div className="absolute top-10 right-10 w-2 h-2">
-            <div className="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '0.5s' }} />
-            <div className="absolute inset-0 bg-amber-300 rounded-full" />
-          </div>
-          <div className="absolute bottom-16 left-10 w-2 h-2">
-            <div className="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '1s' }} />
-            <div className="absolute inset-0 bg-amber-300 rounded-full" />
-          </div>
+          {/* Top decoration */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-4 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 rounded-b-full" />
 
           {/* Content */}
           <div className="relative z-10">
-            {/* Trophy icon */}
-            <div className="mb-6">
-              <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center shadow-xl shadow-amber-500/30 ring-4 ring-amber-300/30">
-                <svg className="w-10 h-10 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
+            {/* Icon */}
+            <div className="mb-6 mt-4">
+              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-600 flex items-center justify-center shadow-xl ring-4 ring-yellow-300/50">
+                <span className="text-5xl">🧧</span>
               </div>
             </div>
 
             {/* Title */}
-            <h2 className="text-3xl font-bold mb-2">
-              <span className="gold-shimmer">ยินดีด้วย!</span>
+            <h2 className="text-3xl font-bold mb-2 text-yellow-300" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+              恭喜發財
             </h2>
-            <p className="text-gray-500 font-medium">คุณได้รับรางวัล</p>
+            <p className="text-yellow-100 font-bold text-xl mb-2">ยินดีด้วย!</p>
+            <p className="text-red-200">คุณได้รับรางวัล</p>
 
             {/* Divider */}
-            <div className="divider-gold w-24 mx-auto my-6" />
+            <div className="w-24 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto my-6" />
 
             {/* Prize display */}
-            <div className="relative bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100 py-8 px-6 rounded-xl border border-amber-200 shadow-inner mb-8">
-              {/* Inner glow */}
-              <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/50 rounded-xl pointer-events-none" />
+            <div className="relative bg-gradient-to-b from-yellow-50 to-orange-100 py-8 px-6 rounded-xl border-2 border-yellow-400 shadow-inner mb-8">
+              {/* Inner pattern */}
+              <div className="absolute inset-0 opacity-5 rounded-xl overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-red-500 text-9xl font-bold" style={{ fontFamily: 'serif' }}>
+                  福
+                </div>
+              </div>
 
               {prize.image_url && (
                 <img
@@ -123,30 +126,34 @@ export function PrizePopup({ prize, onClose }: PrizePopupProps) {
                   className="w-24 h-24 object-contain mx-auto mb-4 drop-shadow-lg"
                 />
               )}
-              <h3 className="relative text-2xl font-bold text-amber-800">{prize.name}</h3>
+              <h3 className="relative text-2xl font-bold text-red-700">{prize.name}</h3>
               {prize.description && (
-                <p className="relative text-gray-600 text-sm mt-2 font-medium">{prize.description}</p>
+                <p className="relative text-red-600/80 text-sm mt-2 font-medium">{prize.description}</p>
               )}
             </div>
 
             {/* Button */}
             <button
               onClick={onClose}
-              className="w-full py-4 btn-premium rounded-xl text-lg font-bold tracking-wide"
+              className="w-full py-4 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 text-red-700 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all border-2 border-yellow-500"
             >
               <span className="flex items-center justify-center gap-2">
-                รับรางวัล
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                รับอั่งเปา 🧧
               </span>
             </button>
           </div>
 
-          {/* Bottom accent */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-28 h-1.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent rounded-full" />
+          {/* Bottom decoration */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-4 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 rounded-t-full" />
         </div>
       </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 0.5; }
+          50% { transform: scale(1.1); opacity: 0.8; }
+        }
+      `}</style>
     </div>
   );
 }
