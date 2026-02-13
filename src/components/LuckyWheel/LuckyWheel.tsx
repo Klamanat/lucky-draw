@@ -1,81 +1,145 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Prize } from '../../types';
 
 interface LuckyWheelProps {
   prizes: Prize[];
   onSpinEnd: (prize: Prize) => void;
   disabled?: boolean;
+  spinning?: boolean;
   targetPrizeId?: string;
 }
 
-export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: LuckyWheelProps) {
+export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeId }: LuckyWheelProps) {
   const [rotation, setRotation] = useState(0);
-  const [isSpinning, setIsSpinning] = useState(false);
+  const [phase, setPhase] = useState<'idle' | 'looping' | 'landing'>('idle');
+  const animFrameRef = useRef<number>(0);
+  const loopRotRef = useRef(0);
+  const startTimeRef = useRef(0);
+  const baseRotRef = useRef(0);
 
   const segmentAngle = 360 / prizes.length;
 
+  // Phase 1: Start continuous fast spin (while waiting for API)
   useEffect(() => {
-    if (targetPrizeId && !isSpinning) {
-      const targetIndex = prizes.findIndex(p => p.id === targetPrizeId);
-      if (targetIndex !== -1) {
-        spinToTarget(targetIndex);
-      }
+    if (spinning && phase === 'idle') {
+      setPhase('looping');
+      baseRotRef.current = rotation;
+      startTimeRef.current = performance.now();
+      loopRotRef.current = 0;
     }
-  }, [targetPrizeId]);
+  }, [spinning]);
 
-  const spinToTarget = (targetIndex: number) => {
-    setIsSpinning(true);
+  // Animate the looping phase
+  useEffect(() => {
+    if (phase !== 'looping') return;
+
+    const speed = 720; // degrees per second
+
+    const animate = (now: number) => {
+      const elapsed = (now - startTimeRef.current) / 1000;
+      loopRotRef.current = elapsed * speed;
+      setRotation(baseRotRef.current + loopRotRef.current);
+      animFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    animFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [phase]);
+
+  // Phase 2: API responded - land on target
+  const landOnTarget = useCallback((targetIndex: number) => {
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+
+    const currentRot = baseRotRef.current + loopRotRef.current;
+    // Normalize to find where we are
+    const normalizedCurrent = ((currentRot % 360) + 360) % 360;
 
     const segmentCenter = targetIndex * segmentAngle + segmentAngle / 2;
-    const targetAngle = 360 - segmentCenter;
-    const totalRotation = rotation + (360 * 10) + targetAngle + (Math.random() * 10 - 5);
+    const targetAngle = (360 - segmentCenter + 360) % 360;
 
-    setRotation(totalRotation);
+    // Calculate how much more to spin: at least 2 full rotations + land on target
+    let delta = targetAngle - normalizedCurrent;
+    if (delta < 0) delta += 360;
+    const totalExtra = (360 * 3) + delta + (Math.random() * 10 - 5);
+    const finalRotation = currentRot + totalExtra;
+
+    setPhase('landing');
+    setRotation(finalRotation);
 
     setTimeout(() => {
-      setIsSpinning(false);
+      setPhase('idle');
       onSpinEnd(prizes[targetIndex]);
-    }, 6000);
-  };
+    }, 3000);
+  }, [prizes, segmentAngle, onSpinEnd]);
+
+  useEffect(() => {
+    if (targetPrizeId && phase === 'looping') {
+      const targetIndex = prizes.findIndex(p => p.id === targetPrizeId);
+      if (targetIndex !== -1) {
+        landOnTarget(targetIndex);
+      }
+    }
+  }, [targetPrizeId, phase, prizes, landOnTarget]);
+
+  const isActive = phase !== 'idle';
+
+  // Red-gold color pairs: [bg, text]
+  const colorPairs = [
+    ['#c41e3a', '#ffd700'],
+    ['#3a0a0a', '#ffd700'],
+    ['#8b0000', '#fff8dc'],
+    ['#2a0505', '#ffc107'],
+    ['#a01830', '#ffd700'],
+    ['#1f0303', '#f0c040'],
+  ];
+
+  // Build transition style based on phase
+  let transitionStyle = 'none';
+  if (phase === 'landing') {
+    transitionStyle = 'transform 3s cubic-bezier(0.12, 0.75, 0.22, 1)';
+  }
 
   return (
     <div className="relative w-[320px] h-[320px] md:w-[400px] md:h-[400px]">
-      {/* Outer festive glow */}
+      {/* Outer glow */}
       <div
-        className="absolute -inset-20 rounded-full animate-glow-pulse"
+        className="absolute -inset-16 rounded-full animate-glow-pulse"
         style={{
-          background: 'radial-gradient(circle, rgba(255,215,0,0.4) 0%, rgba(255,0,0,0.2) 40%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(255,215,0,0.2) 0%, rgba(220,20,60,0.1) 40%, transparent 70%)',
         }}
       />
 
-      {/* Decorative outer ring with Chinese pattern */}
-      <div className="absolute -inset-8 rounded-full" style={{
-        background: 'linear-gradient(180deg, #8B0000 0%, #5C0000 50%, #3D0000 100%)',
-        boxShadow: 'inset 0 4px 20px rgba(255,215,0,0.3), 0 10px 50px rgba(0,0,0,0.5)',
+      {/* Outer ring - dark with lights */}
+      <div className="absolute -inset-7 rounded-full" style={{
+        background: 'linear-gradient(180deg, #3a0a0a 0%, #1a0505 100%)',
+        boxShadow: 'inset 0 2px 10px rgba(255,215,0,0.15), 0 8px 40px rgba(0,0,0,0.5)',
       }}>
-        {/* Decorative gold dots and lights */}
-        {Array.from({ length: 32 }).map((_, i) => {
-          const angle = (i * 11.25 - 90) * (Math.PI / 180);
+        {/* Light dots */}
+        {Array.from({ length: 24 }).map((_, i) => {
+          const angle = (i * 15 - 90) * (Math.PI / 180);
           const x = 50 + 46 * Math.cos(angle);
           const y = 50 + 46 * Math.sin(angle);
-          const isGold = i % 2 === 0;
+          const isAccent = i % 2 === 0;
           return (
             <div
               key={`light-${i}`}
               className="absolute rounded-full"
               style={{
-                width: isGold ? '10px' : '6px',
-                height: isGold ? '10px' : '6px',
+                width: isAccent ? '8px' : '5px',
+                height: isAccent ? '8px' : '5px',
                 left: `${x}%`,
                 top: `${y}%`,
                 transform: 'translate(-50%, -50%)',
-                background: isSpinning
-                  ? (isGold ? 'linear-gradient(180deg, #FFD700 0%, #FFA500 100%)' : '#FF4444')
-                  : (isGold ? 'linear-gradient(180deg, #D4AF37 0%, #B8860B 100%)' : '#CC3333'),
-                boxShadow: isSpinning
-                  ? `0 0 ${isGold ? '15px' : '10px'} ${isGold ? '#FFD700' : '#FF4444'}`
-                  : `0 0 ${isGold ? '8px' : '5px'} ${isGold ? '#D4AF37' : '#CC3333'}`,
-                animation: isSpinning ? `glow-pulse 0.2s ease-in-out infinite ${i * 0.03}s` : 'none',
+                background: isActive
+                  ? (isAccent ? '#ffd700' : '#ff4444')
+                  : (isAccent ? 'rgba(255,215,0,0.4)' : 'rgba(255,68,68,0.3)'),
+                boxShadow: isActive
+                  ? `0 0 ${isAccent ? '12px' : '8px'} ${isAccent ? '#ffd700' : '#ff4444'}`
+                  : `0 0 ${isAccent ? '6px' : '3px'} ${isAccent ? 'rgba(255,215,0,0.25)' : 'rgba(255,68,68,0.15)'}`,
+                animation: isActive ? `glow-pulse 0.3s ease-in-out infinite ${i * 0.04}s` : 'none',
               }}
             />
           );
@@ -84,10 +148,10 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
 
       {/* Gold ring */}
       <div
-        className="absolute -inset-4 rounded-full"
+        className="absolute -inset-3 rounded-full"
         style={{
-          background: 'linear-gradient(180deg, #FFD700 0%, #FFC107 20%, #D4AF37 50%, #B8860B 80%, #8B6914 100%)',
-          boxShadow: '0 4px 30px rgba(255,215,0,0.5), inset 0 2px 4px rgba(255,255,255,0.4)',
+          background: 'linear-gradient(180deg, #ffd700 0%, #d4a017 30%, #b8860b 60%, #8b6914 100%)',
+          boxShadow: '0 2px 20px rgba(255,215,0,0.3)',
         }}
       />
 
@@ -95,33 +159,26 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
       <div
         className="absolute -inset-1 rounded-full"
         style={{
-          background: 'linear-gradient(180deg, #DC143C 0%, #B22222 50%, #8B0000 100%)',
-          boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.4)',
+          background: 'linear-gradient(180deg, #8b0000 0%, #3a0a0a 100%)',
+          boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.5)',
         }}
       />
 
-      {/* Pointer - Chinese style */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-10 z-20">
-        <div
-          className="relative"
-          style={{
-            filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.5))',
-          }}
-        >
-          {/* Main pointer body */}
+      {/* Pointer */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-8 z-20">
+        <div style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))' }}>
           <div
-            className="w-12 h-16"
+            className="w-10 h-14"
             style={{
-              background: 'linear-gradient(180deg, #FFD700 0%, #D4AF37 50%, #B8860B 100%)',
+              background: 'linear-gradient(180deg, #ffd700 0%, #d4a017 50%, #b8860b 100%)',
               clipPath: 'polygon(50% 100%, 0% 20%, 20% 0%, 80% 0%, 100% 20%)',
             }}
           />
-          {/* Red gem in center */}
           <div
-            className="absolute top-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full"
+            className="absolute top-2.5 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full"
             style={{
-              background: 'radial-gradient(circle at 30% 30%, #FF6347 0%, #DC143C 50%, #8B0000 100%)',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.3)',
+              background: 'radial-gradient(circle at 30% 30%, #ff6347 0%, #dc143c 50%, #8b0000 100%)',
+              boxShadow: '0 0 10px rgba(220,20,60,0.5)',
             }}
           />
         </div>
@@ -132,35 +189,22 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
         className="w-full h-full rounded-full overflow-hidden"
         style={{
           transform: `rotate(${rotation}deg)`,
-          transition: isSpinning ? 'transform 6s cubic-bezier(0.15, 0.85, 0.15, 1)' : 'none',
-          boxShadow: 'inset 0 0 30px rgba(0,0,0,0.3)',
+          transition: transitionStyle,
+          boxShadow: 'inset 0 0 20px rgba(0,0,0,0.3)',
         }}
       >
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <defs>
-            {/* CNY Red gradient */}
-            <linearGradient id="cny-red" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#DC143C" />
-              <stop offset="50%" stopColor="#C41E3A" />
-              <stop offset="100%" stopColor="#8B0000" />
-            </linearGradient>
-            {/* CNY Gold gradient */}
-            <linearGradient id="cny-gold" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FFD700" />
-              <stop offset="50%" stopColor="#FFC107" />
-              <stop offset="100%" stopColor="#D4AF37" />
-            </linearGradient>
-            {/* Center gradient */}
-            <radialGradient id="center-gold" cx="50%" cy="30%">
-              <stop offset="0%" stopColor="#FFD700" />
-              <stop offset="50%" stopColor="#D4AF37" />
-              <stop offset="100%" stopColor="#B8860B" />
-            </radialGradient>
-            {/* Center red */}
-            <radialGradient id="center-red" cx="50%" cy="30%">
-              <stop offset="0%" stopColor="#FF4444" />
-              <stop offset="50%" stopColor="#DC143C" />
-              <stop offset="100%" stopColor="#8B0000" />
+            {colorPairs.map((pair, i) => (
+              <linearGradient key={`grad-${i}`} id={`seg-${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={pair[0]} />
+                <stop offset="100%" stopColor={pair[0]} stopOpacity="0.8" />
+              </linearGradient>
+            ))}
+            <radialGradient id="center-grad" cx="50%" cy="30%">
+              <stop offset="0%" stopColor="#ffd700" />
+              <stop offset="50%" stopColor="#d4a017" />
+              <stop offset="100%" stopColor="#b8860b" />
             </radialGradient>
           </defs>
 
@@ -184,28 +228,26 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
             const textX = 50 + 32 * Math.cos(midRad);
             const textY = 50 + 32 * Math.sin(midRad);
 
-            const isRed = index % 2 === 0;
+            const colorIdx = index % colorPairs.length;
+            const textColor = colorPairs[colorIdx][1];
 
             return (
               <g key={prize.id}>
                 <path
                   d={pathD}
-                  fill={isRed ? 'url(#cny-red)' : 'url(#cny-gold)'}
-                  stroke="#FFD700"
-                  strokeWidth="0.5"
+                  fill={`url(#seg-${colorIdx})`}
+                  stroke="rgba(255,215,0,0.3)"
+                  strokeWidth="0.3"
                 />
                 <text
                   x={textX}
                   y={textY}
-                  fill={isRed ? '#FFD700' : '#8B0000'}
+                  fill={textColor}
                   fontSize="3.5"
                   fontWeight="bold"
                   textAnchor="middle"
                   dominantBaseline="middle"
                   transform={`rotate(${midAngle + 90}, ${textX}, ${textY})`}
-                  style={{
-                    textShadow: isRed ? '0 1px 2px rgba(0,0,0,0.5)' : 'none',
-                  }}
                 >
                   {truncateText(prize.name, 6)}
                 </text>
@@ -213,33 +255,13 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
             );
           })}
 
-          {/* Decorative dots around edge */}
-          {Array.from({ length: prizes.length * 3 }).map((_, i) => {
-            const angle = (i * (360 / (prizes.length * 3)) - 90) * (Math.PI / 180);
-            const x = 50 + 44 * Math.cos(angle);
-            const y = 50 + 44 * Math.sin(angle);
-            return (
-              <circle
-                key={`dot-${i}`}
-                cx={x}
-                cy={y}
-                r="0.8"
-                fill="#FFD700"
-              />
-            );
-          })}
-
-          {/* Center decoration - multi-layer */}
-          <circle cx="50" cy="50" r="16" fill="url(#center-gold)" />
-          <circle cx="50" cy="50" r="13" fill="#8B0000" />
-          <circle cx="50" cy="50" r="11" fill="url(#center-gold)" />
-          <circle cx="50" cy="50" r="9" fill="url(#center-red)" />
-
-          {/* Chinese character 福 (Fu - Fortune) */}
+          {/* Center decoration */}
+          <circle cx="50" cy="50" r="14" fill="#3a0a0a" stroke="rgba(255,215,0,0.4)" strokeWidth="0.5" />
+          <circle cx="50" cy="50" r="11" fill="url(#center-grad)" />
           <text
             x="50"
             y="51"
-            fill="#FFD700"
+            fill="#8b0000"
             fontSize="8"
             fontWeight="bold"
             textAnchor="middle"
@@ -254,15 +276,15 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, targetPrizeId }: Lucky
       {/* Disabled overlay */}
       {disabled && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center">
-          <div className="glass-card px-8 py-4 rounded-xl shadow-2xl border-2 border-amber-500/30">
-            <span className="text-gray-700 font-bold">หมดสิทธิ์หมุน</span>
+          <div className="glass-card px-6 py-3 rounded-xl border border-white/10">
+            <span className="text-white/60 font-bold text-sm">หมดสิทธิ์หมุน</span>
           </div>
         </div>
       )}
 
       <style>{`
         @keyframes glow-pulse {
-          0%, 100% { opacity: 0.7; }
+          0%, 100% { opacity: 0.5; }
           50% { opacity: 1; }
         }
       `}</style>

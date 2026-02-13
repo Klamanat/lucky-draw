@@ -39,6 +39,13 @@ export interface SpinResult {
   error?: string;
 }
 
+export interface EventSettings {
+  startDate: string;   // ISO date string เช่น "2025-01-29"
+  endDate: string;     // ISO date string เช่น "2025-02-12"
+  startTime: string;   // "08:00"
+  endTime: string;     // "20:00"
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

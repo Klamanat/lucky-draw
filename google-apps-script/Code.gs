@@ -1,5 +1,5 @@
 /**
- * Lucky Wheel - Google Apps Script Backend
+ * Lucky Wheel - Google Apps Script Backend (Optimized v2)
  *
  * วิธีใช้:
  * 1. สร้าง Google Sheet ใหม่
@@ -9,12 +9,57 @@
  * 5. Deploy > New deployment > Web app
  * 6. Execute as: Me, Who has access: Anyone
  * 7. Copy URL มาใส่ใน .env ของ React app
+ *
+ * Optimizations v2:
+ * - CacheService ทุก GET endpoint (prizes, history, stats, employees)
+ * - Cache TTL 300s สำหรับ prizes/employees, 120s สำหรับ history/stats
+ * - enterEmployee ใช้ cached employees
+ * - LockService: spin() ใช้ lock ป้องกัน race condition
+ * - Batch operations: ใช้ setValues() แทน setValue() หลายครั้ง
+ * - Single spreadsheet open: spin() เปิด spreadsheet ครั้งเดียว
  */
 
 // ===== CONFIG =====
-const SPREADSHEET_ID = '11gr5XWp9TiTUEAffJNyjPuG6DZpYcbFPt34pcN7-cws';
-const DEFAULT_SPINS = 1; // จำนวนสิทธิ์หมุนเริ่มต้น
-const ADMIN_PASSWORD = 'admin1234'; // รหัสผ่าน Admin
+var SPREADSHEET_ID = '11gr5XWp9TiTUEAffJNyjPuG6DZpYcbFPt34pcN7-cws';
+var DEFAULT_SPINS = 1;
+var ADMIN_PASSWORD = 'admin1234';
+
+// Cache keys & TTL
+var CACHE_KEY_PRIZES = 'prizes_v2';
+var CACHE_KEY_EMPLOYEES = 'employees_v2';
+var CACHE_KEY_ALL_HISTORY = 'all_history_v2';
+var CACHE_KEY_STATS = 'stats_v2';
+var CACHE_KEY_EVENT_SETTINGS = 'event_settings_v2';
+var CACHE_TTL_LONG = 300;   // 5 นาที — prizes, employees (เปลี่ยนไม่บ่อย)
+var CACHE_TTL_MED = 120;    // 2 นาที — history, stats
+
+// ===== CACHE HELPERS =====
+
+function getCache(key) {
+  var cached = CacheService.getScriptCache().get(key);
+  if (cached) {
+    try { return JSON.parse(cached); } catch (e) { /* corrupted */ }
+  }
+  return null;
+}
+
+function setCache(key, data, ttl) {
+  try {
+    CacheService.getScriptCache().put(key, JSON.stringify(data), ttl);
+  } catch (e) {
+    // cache too large or error, skip
+  }
+}
+
+function removeCache(keys) {
+  try {
+    CacheService.getScriptCache().removeAll(keys);
+  } catch (e) { /* ignore */ }
+}
+
+function historyKey(userId) {
+  return 'hist_' + userId;
+}
 
 // ===== MAIN HANDLERS =====
 function doGet(e) {
@@ -26,8 +71,8 @@ function doPost(e) {
 }
 
 function handleRequest(e) {
-  const action = e.parameter.action;
-  let result;
+  var action = e.parameter.action;
+  var result;
 
   try {
     switch(action) {
@@ -82,6 +127,14 @@ function handleRequest(e) {
         result = removeAllowedEmployee(e.parameter.employeeId);
         break;
 
+      // Event Settings APIs
+      case 'getEventSettings':
+        result = getEventSettings();
+        break;
+      case 'saveEventSettings':
+        result = saveEventSettings(JSON.parse(e.postData.contents));
+        break;
+
       default:
         result = { success: false, error: 'Unknown action' };
     }
@@ -97,18 +150,25 @@ function handleRequest(e) {
 // ===== EMPLOYEE FUNCTIONS =====
 
 function enterEmployee(data) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  // ตรวจสอบสิทธิ์จาก cache ก่อน (ไม่ต้องเปิด spreadsheet)
+  var allowedResult = getAllowedEmployees();
+  var employees = allowedResult.employees;
 
-  // ตรวจสอบว่ารหัสพนักงานมีสิทธิ์หรือไม่
-  if (!isEmployeeAllowed(data.employeeId)) {
-    return { success: false, error: 'รหัสพนักงานนี้ไม่มีสิทธิ์ร่วมกิจกรรม' };
+  if (employees.length > 0) {
+    var isAllowed = employees.some(function(id) {
+      return id.toLowerCase() === data.employeeId.toLowerCase();
+    });
+    if (!isAllowed) {
+      return { success: false, error: 'รหัสพนักงานนี้ไม่มีสิทธิ์ร่วมกิจกรรม' };
+    }
   }
 
-  const userSheet = ss.getSheetByName('users');
-  const userData = userSheet.getDataRange().getValues();
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var userSheet = ss.getSheetByName('users');
+  var userData = userSheet.getDataRange().getValues();
 
   // ตรวจสอบว่าเคยลงทะเบียนแล้วหรือยัง
-  for (let i = 1; i < userData.length; i++) {
+  for (var i = 1; i < userData.length; i++) {
     if (userData[i][1] && userData[i][1].toString().toLowerCase() === data.employeeId.toLowerCase()) {
       return {
         success: true,
@@ -125,15 +185,15 @@ function enterEmployee(data) {
   }
 
   // สร้างผู้ใช้ใหม่
-  const lastRow = userSheet.getLastRow();
-  const newId = 'emp_' + (lastRow > 0 ? lastRow : 1);
-  const now = new Date();
+  var lastRow = userSheet.getLastRow();
+  var newId = 'emp_' + (lastRow > 0 ? lastRow : 1);
+  var now = new Date();
 
   userSheet.appendRow([
     newId,
     data.employeeId.toUpperCase(),
     data.name,
-    '', // phone (not used)
+    '',
     DEFAULT_SPINS,
     'user',
     now
@@ -172,104 +232,94 @@ function loginAdmin(password) {
 
 // ===== ALLOWED EMPLOYEES FUNCTIONS =====
 
-function isEmployeeAllowed(employeeId) {
-  const employees = getAllowedEmployees().employees;
-
-  // ถ้าไม่มีรายชื่อ = ทุกคนเข้าร่วมได้
-  if (employees.length === 0) {
-    return true;
+function getAllowedEmployees() {
+  var cached = getCache(CACHE_KEY_EMPLOYEES);
+  if (cached) {
+    return { success: true, employees: cached };
   }
 
-  // ตรวจสอบว่าอยู่ในลิสต์หรือไม่ (case-insensitive)
-  return employees.some(id => id.toLowerCase() === employeeId.toLowerCase());
-}
-
-function getAllowedEmployees() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName('allowed_employees');
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('allowed_employees');
 
   if (!sheet) {
-    // สร้าง sheet ถ้ายังไม่มี
     sheet = ss.insertSheet('allowed_employees');
     sheet.getRange(1, 1).setValue('employee_id');
+    setCache(CACHE_KEY_EMPLOYEES, [], CACHE_TTL_LONG);
     return { success: true, employees: [] };
   }
 
-  const data = sheet.getDataRange().getValues();
-  const employees = [];
+  var data = sheet.getDataRange().getValues();
+  var employees = [];
 
-  for (let i = 1; i < data.length; i++) {
+  for (var i = 1; i < data.length; i++) {
     if (data[i][0]) {
       employees.push(data[i][0].toString().toUpperCase());
     }
   }
 
-  return { success: true, employees };
+  setCache(CACHE_KEY_EMPLOYEES, employees, CACHE_TTL_LONG);
+  return { success: true, employees: employees };
 }
 
 function setAllowedEmployees(data) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName('allowed_employees');
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('allowed_employees');
 
   if (!sheet) {
     sheet = ss.insertSheet('allowed_employees');
   }
 
-  // ล้างข้อมูลเดิม
   sheet.clear();
-
-  // เพิ่ม header
   sheet.getRange(1, 1).setValue('employee_id');
 
-  // เพิ่มข้อมูลใหม่
-  const employees = data.employees || [];
+  var employees = data.employees || [];
   if (employees.length > 0) {
-    const values = employees.map(id => [id.toUpperCase()]);
+    var values = employees.map(function(id) { return [id.toUpperCase()]; });
     sheet.getRange(2, 1, values.length, 1).setValues(values);
   }
 
-  return { success: true, employees: employees.map(id => id.toUpperCase()) };
+  var result = employees.map(function(id) { return id.toUpperCase(); });
+  removeCache([CACHE_KEY_EMPLOYEES]);
+  return { success: true, employees: result };
 }
 
 function addAllowedEmployee(employeeId) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName('allowed_employees');
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('allowed_employees');
 
   if (!sheet) {
     sheet = ss.insertSheet('allowed_employees');
     sheet.getRange(1, 1).setValue('employee_id');
   }
 
-  const id = employeeId.toUpperCase();
-
-  // ตรวจสอบว่ามีอยู่แล้วหรือไม่
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
+  var id = employeeId.toUpperCase();
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
     if (data[i][0] && data[i][0].toString().toUpperCase() === id) {
       return { success: true, message: 'Already exists' };
     }
   }
 
-  // เพิ่มใหม่
   sheet.appendRow([id]);
-
+  removeCache([CACHE_KEY_EMPLOYEES]);
   return { success: true };
 }
 
 function removeAllowedEmployee(employeeId) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName('allowed_employees');
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('allowed_employees');
 
   if (!sheet) {
     return { success: false, error: 'Sheet not found' };
   }
 
-  const id = employeeId.toUpperCase();
-  const data = sheet.getDataRange().getValues();
+  var id = employeeId.toUpperCase();
+  var data = sheet.getDataRange().getValues();
 
-  for (let i = 1; i < data.length; i++) {
+  for (var i = 1; i < data.length; i++) {
     if (data[i][0] && data[i][0].toString().toUpperCase() === id) {
       sheet.deleteRow(i + 1);
+      removeCache([CACHE_KEY_EMPLOYEES]);
       return { success: true };
     }
   }
@@ -280,14 +330,18 @@ function removeAllowedEmployee(employeeId) {
 // ===== PRIZE FUNCTIONS =====
 
 function getPrizes() {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('prizes');
-  const data = sheet.getDataRange().getValues();
-  const prizes = [];
+  var cached = getCache(CACHE_KEY_PRIZES);
+  if (cached) {
+    return { success: true, prizes: cached };
+  }
 
-  // Skip header row
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    if (row[0] && row[6] === true) { // has id and is_active
+  var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('prizes');
+  var data = sheet.getDataRange().getValues();
+  var prizes = [];
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    if (row[0] && row[6] === true) {
       prizes.push({
         id: row[0].toString(),
         name: row[1],
@@ -302,13 +356,44 @@ function getPrizes() {
     }
   }
 
-  return { success: true, prizes };
+  setCache(CACHE_KEY_PRIZES, prizes, CACHE_TTL_LONG);
+  return { success: true, prizes: prizes };
+}
+
+/**
+ * อ่าน prizes จาก sheet โดยตรง (ไม่ใช้ cache)
+ * ใช้ใน spin() เพราะต้องการข้อมูลล่าสุด + ต้องการ row number
+ */
+function readPrizesFromSheet(prizeSheet) {
+  var data = prizeSheet.getDataRange().getValues();
+  var prizes = [];
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    if (row[0] && row[6] === true) {
+      prizes.push({
+        id: row[0].toString(),
+        name: row[1],
+        description: row[2] || '',
+        image_url: row[3] || '',
+        probability: parseFloat(row[4]) || 0,
+        quantity: parseInt(row[5]) || -1,
+        is_active: row[6],
+        color: row[7] || '#3b82f6',
+        is_donatable: row[8] !== false,
+        _rowIndex: i + 1,
+        _rawQuantity: row[5]
+      });
+    }
+  }
+
+  return prizes;
 }
 
 function addPrize(prizeData) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('prizes');
-  const lastRow = sheet.getLastRow();
-  const newId = lastRow > 0 ? lastRow : 1;
+  var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('prizes');
+  var lastRow = sheet.getLastRow();
+  var newId = lastRow > 0 ? lastRow : 1;
 
   sheet.appendRow([
     newId.toString(),
@@ -322,24 +407,28 @@ function addPrize(prizeData) {
     prizeData.is_donatable !== false
   ]);
 
-  return { success: true, prize: { ...prizeData, id: newId.toString() } };
+  removeCache([CACHE_KEY_PRIZES]);
+  return { success: true, prize: { id: newId.toString(), name: prizeData.name, description: prizeData.description || '', image_url: prizeData.image_url || '', probability: prizeData.probability || 10, quantity: prizeData.quantity !== undefined ? prizeData.quantity : -1, is_active: true, color: prizeData.color || '#3b82f6', is_donatable: prizeData.is_donatable !== false } };
 }
 
 function updatePrize(prizeData) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('prizes');
-  const data = sheet.getDataRange().getValues();
+  var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('prizes');
+  var data = sheet.getDataRange().getValues();
 
-  for (let i = 1; i < data.length; i++) {
+  for (var i = 1; i < data.length; i++) {
     if (data[i][0].toString() === prizeData.id.toString()) {
-      const row = i + 1;
-      sheet.getRange(row, 2).setValue(prizeData.name);
-      sheet.getRange(row, 3).setValue(prizeData.description || '');
-      sheet.getRange(row, 4).setValue(prizeData.image_url || '');
-      sheet.getRange(row, 5).setValue(prizeData.probability || 10);
-      sheet.getRange(row, 6).setValue(prizeData.quantity !== undefined ? prizeData.quantity : -1);
-      sheet.getRange(row, 7).setValue(prizeData.is_active !== false);
-      sheet.getRange(row, 8).setValue(prizeData.color || '#3b82f6');
-      sheet.getRange(row, 9).setValue(prizeData.is_donatable !== false);
+      var row = i + 1;
+      sheet.getRange(row, 2, 1, 8).setValues([[
+        prizeData.name,
+        prizeData.description || '',
+        prizeData.image_url || '',
+        prizeData.probability || 10,
+        prizeData.quantity !== undefined ? prizeData.quantity : -1,
+        prizeData.is_active !== false,
+        prizeData.color || '#3b82f6',
+        prizeData.is_donatable !== false
+      ]]);
+      removeCache([CACHE_KEY_PRIZES]);
       return { success: true };
     }
   }
@@ -348,12 +437,13 @@ function updatePrize(prizeData) {
 }
 
 function deletePrize(id) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('prizes');
-  const data = sheet.getDataRange().getValues();
+  var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('prizes');
+  var data = sheet.getDataRange().getValues();
 
-  for (let i = 1; i < data.length; i++) {
+  for (var i = 1; i < data.length; i++) {
     if (data[i][0].toString() === id.toString()) {
       sheet.deleteRow(i + 1);
+      removeCache([CACHE_KEY_PRIZES]);
       return { success: true };
     }
   }
@@ -363,93 +453,111 @@ function deletePrize(id) {
 
 // ===== SPIN FUNCTIONS =====
 
+/**
+ * Optimized spin() - เปิด spreadsheet ครั้งเดียว, ใช้ LockService, batch writes
+ */
 function spin(userId) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const userSheet = ss.getSheetByName('users');
-  const userData = userSheet.getDataRange().getValues();
-
-  // 1. ตรวจสอบสิทธิ์ผู้ใช้
-  let userRow = -1;
-  let userName = '';
-  let employeeId = '';
-  let spinsRemaining = 0;
-
-  for (let i = 1; i < userData.length; i++) {
-    if (userData[i][0].toString() === userId.toString()) {
-      userRow = i + 1;
-      employeeId = userData[i][1];
-      userName = userData[i][2];
-      spinsRemaining = parseInt(userData[i][4]) || 0;
-      break;
-    }
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch (e) {
+    return { success: false, error: 'ระบบกำลังประมวลผล กรุณาลองใหม่' };
   }
 
-  if (userRow === -1) {
-    return { success: false, error: 'ไม่พบผู้ใช้งาน' };
-  }
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var userSheet = ss.getSheetByName('users');
+    var userData = userSheet.getDataRange().getValues();
 
-  if (spinsRemaining <= 0) {
-    return { success: false, error: 'ไม่มีสิทธิ์หมุนแล้ว' };
-  }
+    var userRow = -1;
+    var userName = '';
+    var employeeId = '';
+    var spinsRemaining = 0;
 
-  // 2. ดึงรางวัล active ที่ยังมีจำนวน
-  const prizes = getPrizes().prizes.filter(p => p.quantity !== 0);
-
-  if (prizes.length === 0) {
-    return { success: false, error: 'ไม่มีรางวัลในระบบ' };
-  }
-
-  // 3. Weighted Random Selection
-  const totalWeight = prizes.reduce((sum, p) => sum + p.probability, 0);
-  let random = Math.random() * totalWeight;
-  let selectedPrize = prizes[0];
-
-  for (const prize of prizes) {
-    random -= prize.probability;
-    if (random <= 0) {
-      selectedPrize = prize;
-      break;
-    }
-  }
-
-  // 4. ลดจำนวนรางวัล (ถ้าไม่ใช่ -1)
-  if (selectedPrize.quantity > 0) {
-    const prizeSheet = ss.getSheetByName('prizes');
-    const prizeData = prizeSheet.getDataRange().getValues();
-    for (let i = 1; i < prizeData.length; i++) {
-      if (prizeData[i][0].toString() === selectedPrize.id.toString()) {
-        const newQty = parseInt(prizeData[i][5]) - 1;
-        prizeSheet.getRange(i + 1, 6).setValue(newQty);
+    for (var i = 1; i < userData.length; i++) {
+      if (userData[i][0].toString() === userId.toString()) {
+        userRow = i + 1;
+        employeeId = userData[i][1];
+        userName = userData[i][2];
+        spinsRemaining = parseInt(userData[i][4]) || 0;
         break;
       }
     }
+
+    if (userRow === -1) {
+      return { success: false, error: 'ไม่พบผู้ใช้งาน' };
+    }
+
+    if (spinsRemaining <= 0) {
+      return { success: false, error: 'ไม่มีสิทธิ์หมุนแล้ว' };
+    }
+
+    var prizeSheet = ss.getSheetByName('prizes');
+    var allPrizes = readPrizesFromSheet(prizeSheet);
+    var prizes = allPrizes.filter(function(p) { return p.quantity !== 0; });
+
+    if (prizes.length === 0) {
+      return { success: false, error: 'ไม่มีรางวัลในระบบ' };
+    }
+
+    var totalWeight = prizes.reduce(function(sum, p) { return sum + p.probability; }, 0);
+    var random = Math.random() * totalWeight;
+    var selectedPrize = prizes[0];
+
+    for (var j = 0; j < prizes.length; j++) {
+      random -= prizes[j].probability;
+      if (random <= 0) {
+        selectedPrize = prizes[j];
+        break;
+      }
+    }
+
+    if (selectedPrize.quantity > 0) {
+      var newQty = selectedPrize.quantity - 1;
+      prizeSheet.getRange(selectedPrize._rowIndex, 6).setValue(newQty);
+    }
+
+    userSheet.getRange(userRow, 5).setValue(spinsRemaining - 1);
+
+    var historySheet = ss.getSheetByName('spin_history');
+    var lastHistoryRow = historySheet.getLastRow();
+    var newHistoryId = lastHistoryRow > 0 ? lastHistoryRow : 1;
+
+    historySheet.appendRow([
+      newHistoryId.toString(),
+      userId,
+      userName,
+      employeeId,
+      selectedPrize.id,
+      selectedPrize.name,
+      new Date(),
+      'claimed'
+    ]);
+
+    // Invalidate all caches ที่ได้รับผลกระทบ
+    removeCache([CACHE_KEY_PRIZES, CACHE_KEY_ALL_HISTORY, CACHE_KEY_STATS, historyKey(userId)]);
+
+    var returnPrize = {
+      id: selectedPrize.id,
+      name: selectedPrize.name,
+      description: selectedPrize.description,
+      image_url: selectedPrize.image_url,
+      probability: selectedPrize.probability,
+      quantity: selectedPrize.quantity > 0 ? selectedPrize.quantity - 1 : selectedPrize.quantity,
+      is_active: selectedPrize.is_active,
+      color: selectedPrize.color,
+      is_donatable: selectedPrize.is_donatable
+    };
+
+    return {
+      success: true,
+      prize: returnPrize,
+      spinsRemaining: spinsRemaining - 1,
+      historyId: newHistoryId.toString()
+    };
+  } finally {
+    lock.releaseLock();
   }
-
-  // 5. ลดสิทธิ์หมุน
-  userSheet.getRange(userRow, 5).setValue(spinsRemaining - 1);
-
-  // 6. บันทึกประวัติ
-  const historySheet = ss.getSheetByName('spin_history');
-  const lastHistoryRow = historySheet.getLastRow();
-  const newHistoryId = lastHistoryRow > 0 ? lastHistoryRow : 1;
-
-  historySheet.appendRow([
-    newHistoryId.toString(),
-    userId,
-    userName,
-    employeeId,
-    selectedPrize.id,
-    selectedPrize.name,
-    new Date(),
-    'claimed'
-  ]);
-
-  return {
-    success: true,
-    prize: selectedPrize,
-    spinsRemaining: spinsRemaining - 1,
-    historyId: newHistoryId.toString()
-  };
 }
 
 function donatePrize(historyId, amount) {
@@ -459,8 +567,10 @@ function donatePrize(historyId, amount) {
 
   for (var i = 1; i < data.length; i++) {
     if (data[i][0].toString() === historyId.toString()) {
-      sheet.getRange(i + 1, 8).setValue('donated');
-      sheet.getRange(i + 1, 9).setValue(amount || 0);
+      sheet.getRange(i + 1, 8, 1, 2).setValues([['donated', amount || 0]]);
+      // Invalidate history/stats caches
+      var userId = data[i][1].toString();
+      removeCache([CACHE_KEY_ALL_HISTORY, CACHE_KEY_STATS, historyKey(userId)]);
       return { success: true };
     }
   }
@@ -469,11 +579,18 @@ function donatePrize(historyId, amount) {
 }
 
 function getHistory(userId) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('spin_history');
-  const data = sheet.getDataRange().getValues();
-  const history = [];
+  // ลอง cache ก่อน
+  var cacheKey = historyKey(userId);
+  var cached = getCache(cacheKey);
+  if (cached) {
+    return cached;
+  }
 
-  for (let i = 1; i < data.length; i++) {
+  var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('spin_history');
+  var data = sheet.getDataRange().getValues();
+  var history = [];
+
+  for (var i = 1; i < data.length; i++) {
     if (data[i][1].toString() === userId.toString()) {
       history.push({
         id: data[i][0].toString(),
@@ -489,18 +606,23 @@ function getHistory(userId) {
     }
   }
 
-  // เรียงจากใหม่ไปเก่า
   history.reverse();
-
-  return { success: true, history };
+  var result = { success: true, history: history };
+  setCache(cacheKey, result, CACHE_TTL_MED);
+  return result;
 }
 
 function getAllHistory() {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('spin_history');
-  const data = sheet.getDataRange().getValues();
-  const history = [];
+  var cached = getCache(CACHE_KEY_ALL_HISTORY);
+  if (cached) {
+    return cached;
+  }
 
-  for (let i = 1; i < data.length; i++) {
+  var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('spin_history');
+  var data = sheet.getDataRange().getValues();
+  var history = [];
+
+  for (var i = 1; i < data.length; i++) {
     if (data[i][0]) {
       history.push({
         id: data[i][0].toString(),
@@ -516,30 +638,32 @@ function getAllHistory() {
     }
   }
 
-  // เรียงจากใหม่ไปเก่า
   history.reverse();
-
-  return { success: true, history };
+  var result = { success: true, history: history };
+  setCache(CACHE_KEY_ALL_HISTORY, result, CACHE_TTL_MED);
+  return result;
 }
 
 function getStats() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var cached = getCache(CACHE_KEY_STATS);
+  if (cached) {
+    return cached;
+  }
 
-  // นับผู้ใช้
-  const userSheet = ss.getSheetByName('users');
-  const userCount = Math.max(0, userSheet.getLastRow() - 1);
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
-  // นับการหมุน
-  const historySheet = ss.getSheetByName('spin_history');
-  const historyData = historySheet.getDataRange().getValues();
-  const spinCount = Math.max(0, historyData.length - 1);
+  var userSheet = ss.getSheetByName('users');
+  var userCount = Math.max(0, userSheet.getLastRow() - 1);
 
-  // สถิติรางวัล + บริจาค
-  const prizeStats = {};
+  var historySheet = ss.getSheetByName('spin_history');
+  var historyData = historySheet.getDataRange().getValues();
+  var spinCount = Math.max(0, historyData.length - 1);
+
+  var prizeStats = {};
   var totalDonations = 0;
   var totalDonationAmount = 0;
-  for (let i = 1; i < historyData.length; i++) {
-    const prizeName = historyData[i][5];
+  for (var i = 1; i < historyData.length; i++) {
+    var prizeName = historyData[i][5];
     if (prizeName) {
       prizeStats[prizeName] = (prizeStats[prizeName] || 0) + 1;
     }
@@ -549,7 +673,7 @@ function getStats() {
     }
   }
 
-  return {
+  var result = {
     success: true,
     stats: {
       totalSpins: spinCount,
@@ -559,46 +683,118 @@ function getStats() {
       prizeStats: prizeStats
     }
   };
+  setCache(CACHE_KEY_STATS, result, CACHE_TTL_MED);
+  return result;
+}
+
+// ===== EVENT SETTINGS FUNCTIONS =====
+
+function getEventSettings() {
+  var cached = getCache(CACHE_KEY_EVENT_SETTINGS);
+  if (cached) {
+    return { success: true, settings: cached };
+  }
+
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('settings');
+
+  if (!sheet) {
+    sheet = ss.insertSheet('settings');
+    sheet.getRange(1, 1, 1, 2).setValues([['key', 'value']]);
+    var defaults = { startDate: '', endDate: '', startTime: '08:00', endTime: '20:00' };
+    setCache(CACHE_KEY_EVENT_SETTINGS, defaults, CACHE_TTL_LONG);
+    return { success: true, settings: defaults };
+  }
+
+  var data = sheet.getDataRange().getValues();
+  var settings = { startDate: '', endDate: '', startTime: '08:00', endTime: '20:00' };
+
+  for (var i = 1; i < data.length; i++) {
+    var key = data[i][0] ? data[i][0].toString() : '';
+    var value = data[i][1] ? data[i][1].toString() : '';
+    if (key === 'startDate') settings.startDate = value;
+    else if (key === 'endDate') settings.endDate = value;
+    else if (key === 'startTime') settings.startTime = value;
+    else if (key === 'endTime') settings.endTime = value;
+  }
+
+  setCache(CACHE_KEY_EVENT_SETTINGS, settings, CACHE_TTL_LONG);
+  return { success: true, settings: settings };
+}
+
+function saveEventSettings(data) {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('settings');
+
+  if (!sheet) {
+    sheet = ss.insertSheet('settings');
+    sheet.getRange(1, 1, 1, 2).setValues([['key', 'value']]);
+  }
+
+  // Clear existing settings rows and rewrite
+  var existing = sheet.getDataRange().getValues();
+  // Remove old event setting rows
+  var settingsKeys = ['startDate', 'endDate', 'startTime', 'endTime'];
+  var rowsToKeep = [existing[0]]; // keep header
+  for (var i = 1; i < existing.length; i++) {
+    if (settingsKeys.indexOf(existing[i][0]) === -1) {
+      rowsToKeep.push(existing[i]);
+    }
+  }
+
+  sheet.clear();
+  if (rowsToKeep.length > 0) {
+    sheet.getRange(1, 1, rowsToKeep.length, 2).setValues(rowsToKeep);
+  }
+
+  // Append new settings
+  var newRows = [
+    ['startDate', data.startDate || ''],
+    ['endDate', data.endDate || ''],
+    ['startTime', data.startTime || '08:00'],
+    ['endTime', data.endTime || '20:00']
+  ];
+  sheet.getRange(rowsToKeep.length + 1, 1, newRows.length, 2).setValues(newRows);
+
+  removeCache([CACHE_KEY_EVENT_SETTINGS]);
+  return { success: true };
 }
 
 // ===== SETUP HELPER =====
 
-/**
- * รันฟังก์ชันนี้ครั้งแรกเพื่อสร้าง sheets
- */
 function setupSheets() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
   // Prizes sheet
-  let prizeSheet = ss.getSheetByName('prizes');
+  var prizeSheet = ss.getSheetByName('prizes');
   if (!prizeSheet) {
     prizeSheet = ss.insertSheet('prizes');
   }
   prizeSheet.getRange(1, 1, 1, 9).setValues([['id', 'name', 'description', 'image_url', 'probability', 'quantity', 'is_active', 'color', 'is_donatable']]);
 
   // Users sheet
-  let userSheet = ss.getSheetByName('users');
+  var userSheet = ss.getSheetByName('users');
   if (!userSheet) {
     userSheet = ss.insertSheet('users');
   }
   userSheet.getRange(1, 1, 1, 7).setValues([['id', 'employee_id', 'name', 'phone', 'spins_remaining', 'role', 'created_at']]);
 
   // Spin history sheet
-  let historySheet = ss.getSheetByName('spin_history');
+  var historySheet = ss.getSheetByName('spin_history');
   if (!historySheet) {
     historySheet = ss.insertSheet('spin_history');
   }
   historySheet.getRange(1, 1, 1, 9).setValues([['id', 'user_id', 'user_name', 'employee_id', 'prize_id', 'prize_name', 'spun_at', 'status', 'donation_amount']]);
 
   // Allowed employees sheet
-  let allowedSheet = ss.getSheetByName('allowed_employees');
+  var allowedSheet = ss.getSheetByName('allowed_employees');
   if (!allowedSheet) {
     allowedSheet = ss.insertSheet('allowed_employees');
   }
   allowedSheet.getRange(1, 1).setValue('employee_id');
 
   // Settings sheet
-  let settingsSheet = ss.getSheetByName('settings');
+  var settingsSheet = ss.getSheetByName('settings');
   if (!settingsSheet) {
     settingsSheet = ss.insertSheet('settings');
   }
@@ -624,4 +820,16 @@ function setupSheets() {
   ]);
 
   Logger.log('Setup completed!');
+}
+
+/**
+ * Warm-up function — ตั้ง Time-driven trigger ให้เรียกทุก 4 นาที
+ * เพื่อป้องกัน cold start (GAS cold start = +2-5 วินาที)
+ *
+ * วิธีตั้ง: Triggers > Add Trigger > warmUp > Time-driven > Minutes timer > Every 4 minutes
+ */
+function warmUp() {
+  // เรียก CacheService เพื่อ keep instance warm
+  CacheService.getScriptCache().get('_warmup');
+  return true;
 }

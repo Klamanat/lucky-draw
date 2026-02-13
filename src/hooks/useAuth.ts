@@ -1,25 +1,24 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { User } from '../types';
 import { api } from '../services/api';
 
 const STORAGE_KEY = 'lucky_wheel_user';
 
-export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // โหลด user จาก localStorage
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem(STORAGE_KEY);
-      }
+function loadUserFromStorage(): User | null {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
     }
-    setLoading(false);
-  }, []);
+  }
+  return null;
+}
+
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(loadUserFromStorage);
+  const [loading, setLoading] = useState(false);
 
   // สำหรับผู้ใช้ทั่วไป - กรอกรหัสพนักงานและชื่อ
   const enterAsEmployee = useCallback(async (data: { employeeId: string; name: string }) => {

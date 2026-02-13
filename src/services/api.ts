@@ -1,4 +1,4 @@
-import type { Prize, User, SpinHistory, SpinResult } from '../types';
+import type { Prize, User, SpinHistory, SpinResult, EventSettings } from '../types';
 
 // Google Apps Script Web App URL
 const SCRIPT_URL = import.meta.env.VITE_SCRIPT_URL || '';
@@ -13,6 +13,7 @@ const ADMIN_PASSWORD = 'admin1234';
 // ถ้า array ว่าง = ทุกคนสามารถร่วมได้
 // ถ้ามีรายชื่อ = เฉพาะรหัสที่อยู่ในลิสต์เท่านั้น
 const STORAGE_KEY_EMPLOYEES = 'lucky_wheel_allowed_employees';
+const STORAGE_KEY_EVENT_SETTINGS = 'lucky_wheel_event_settings';
 
 // โหลดจาก localStorage หรือใช้ค่าเริ่มต้น
 function loadAllowedEmployees(): string[] {
@@ -56,6 +57,122 @@ function isEmployeeAllowed(employeeId: string): boolean {
   );
 }
 
+// ===== CACHE LAYER =====
+const cache = new Map<string, { data: unknown; timestamp: number }>();
+const pending = new Map<string, Promise<unknown>>();
+const CACHE_TTL: Record<string, number> = {
+  getPrizes: 300_000,       // 5 นาที (ตรงกับ GAS cache)
+  getHistory: 120_000,      // 2 นาที
+  getAllHistory: 120_000,
+  getStats: 120_000,
+  getAllowedEmployees: 300_000,
+  getEventSettings: 300_000,
+};
+const DEMO_CACHE_TTL: Record<string, number> = {
+  getPrizes: 5_000,
+  getHistory: 5_000,
+  getAllHistory: 5_000,
+  getStats: 5_000,
+  getEventSettings: 5_000,
+};
+
+function getCacheTTL(action: string): number {
+  const ttlMap = DEMO_MODE ? DEMO_CACHE_TTL : CACHE_TTL;
+  return ttlMap[action] ?? 0;
+}
+
+// Stale threshold: ถ้า cache เก่ากว่านี้ จะ revalidate เบื้องหลัง แต่ยัง return stale data ทันที
+const STALE_TTL: Record<string, number> = {
+  getPrizes: 30_000,        // 30 วินาที — stale หลัง 30s, revalidate background
+  getHistory: 15_000,
+  getAllHistory: 15_000,
+  getStats: 15_000,
+  getAllowedEmployees: 30_000,
+  getEventSettings: 30_000,
+};
+
+function getStaleThreshold(action: string): number {
+  return STALE_TTL[action] ?? 0;
+}
+
+function revalidateInBackground<T>(cacheKey: string, action: string, fetcher: () => Promise<T>): void {
+  if (pending.has(cacheKey)) return; // already revalidating
+  const ttl = getCacheTTL(action);
+  const promise = fetcher()
+    .then((data) => {
+      if (ttl > 0) {
+        cache.set(cacheKey, { data, timestamp: Date.now() });
+      }
+    })
+    .finally(() => {
+      pending.delete(cacheKey);
+    });
+  pending.set(cacheKey, promise);
+}
+
+function fetchWithCache<T>(cacheKey: string, action: string, fetcher: () => Promise<T>): Promise<T> {
+  const ttl = getCacheTTL(action);
+  const staleThreshold = getStaleThreshold(action);
+
+  // Check cache
+  if (ttl > 0) {
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      const age = Date.now() - cached.timestamp;
+      if (age < ttl) {
+        // Stale-while-revalidate: ถ้า cache เก่ากว่า stale threshold แต่ยังไม่หมดอายุ
+        // return data ทันที + fetch ใหม่เบื้องหลัง
+        if (staleThreshold > 0 && age > staleThreshold) {
+          revalidateInBackground(cacheKey, action, fetcher);
+        }
+        return Promise.resolve(cached.data as T);
+      }
+    }
+  }
+
+  // Dedup: if same request is in-flight, return the same promise
+  const inflight = pending.get(cacheKey);
+  if (inflight) {
+    return inflight as Promise<T>;
+  }
+
+  const promise = fetcher()
+    .then((data) => {
+      if (ttl > 0) {
+        cache.set(cacheKey, { data, timestamp: Date.now() });
+      }
+      return data;
+    })
+    .finally(() => {
+      pending.delete(cacheKey);
+    });
+
+  pending.set(cacheKey, promise);
+  return promise;
+}
+
+export function getFromCache<T>(cacheKey: string): T | undefined {
+  const cached = cache.get(cacheKey);
+  const action = cacheKey.split(':')[0];
+  const ttl = getCacheTTL(action);
+  if (cached && ttl > 0 && Date.now() - cached.timestamp < ttl) {
+    return cached.data as T;
+  }
+  return undefined;
+}
+
+export function invalidateCache(...actions: string[]): void {
+  if (actions.length === 0) {
+    cache.clear();
+    return;
+  }
+  for (const key of cache.keys()) {
+    if (actions.some(action => key === action || key.startsWith(action + ':'))) {
+      cache.delete(key);
+    }
+  }
+}
+
 // ===== DEMO DATA =====
 const demoPrizes: Prize[] = [
   { id: '1', name: 'อั่งเปา 888', description: 'อั่งเปามงคล', image_url: '', probability: 5, quantity: 1, color: '#c41e3a', is_active: true, is_donatable: true },
@@ -91,8 +208,10 @@ function selectPrize(prizes: Prize[]): Prize {
 // ===== DEMO API =====
 const demoApi = {
   async getPrizes(): Promise<{ success: boolean; prizes: Prize[] }> {
-    await delay(300);
-    return { success: true, prizes: demoPrizes.filter(p => p.is_active) };
+    return fetchWithCache('getPrizes', 'getPrizes', async () => {
+      await delay(300);
+      return { success: true, prizes: demoPrizes.filter(p => p.is_active) };
+    });
   },
 
   async spin(userId: string): Promise<SpinResult> {
@@ -116,6 +235,7 @@ const demoApi = {
       status: 'claimed',
     });
 
+    invalidateCache('getPrizes', 'getHistory', 'getAllHistory', 'getStats');
     return { success: true, prize, spinsRemaining: user.spins_remaining, historyId };
   },
 
@@ -162,13 +282,17 @@ const demoApi = {
   },
 
   async getHistory(userId: string): Promise<{ success: boolean; history: SpinHistory[] }> {
-    await delay(300);
-    return { success: true, history: demoHistory.filter(h => h.user_id === userId) };
+    return fetchWithCache(`getHistory:${userId}`, 'getHistory', async () => {
+      await delay(300);
+      return { success: true, history: demoHistory.filter(h => h.user_id === userId) };
+    });
   },
 
   async getAllHistory(): Promise<{ success: boolean; history: SpinHistory[] }> {
-    await delay(300);
-    return { success: true, history: demoHistory };
+    return fetchWithCache('getAllHistory', 'getAllHistory', async () => {
+      await delay(300);
+      return { success: true, history: demoHistory };
+    });
   },
 
   async donatePrize(historyId: string, amount: number): Promise<{ success: boolean; error?: string }> {
@@ -179,37 +303,41 @@ const demoApi = {
     }
     entry.status = 'donated';
     entry.donation_amount = amount;
+    invalidateCache('getHistory', 'getAllHistory', 'getStats');
     return { success: true };
   },
 
   async getStats(): Promise<{ success: boolean; stats: { totalSpins: number; totalUsers: number; totalDonations: number; totalDonationAmount: number; prizeStats: Record<string, number> } }> {
-    await delay(300);
-    const prizeStats: Record<string, number> = {};
-    let totalDonations = 0;
-    let totalDonationAmount = 0;
-    demoHistory.forEach(h => {
-      prizeStats[h.prize_name] = (prizeStats[h.prize_name] || 0) + 1;
-      if (h.status === 'donated') {
-        totalDonations++;
-        totalDonationAmount += h.donation_amount || 0;
-      }
+    return fetchWithCache('getStats', 'getStats', async () => {
+      await delay(300);
+      const prizeStats: Record<string, number> = {};
+      let totalDonations = 0;
+      let totalDonationAmount = 0;
+      demoHistory.forEach(h => {
+        prizeStats[h.prize_name] = (prizeStats[h.prize_name] || 0) + 1;
+        if (h.status === 'donated') {
+          totalDonations++;
+          totalDonationAmount += h.donation_amount || 0;
+        }
+      });
+      return {
+        success: true,
+        stats: {
+          totalSpins: demoHistory.length,
+          totalUsers: demoUsers.filter(u => u.role === 'user').length,
+          totalDonations,
+          totalDonationAmount,
+          prizeStats,
+        },
+      };
     });
-    return {
-      success: true,
-      stats: {
-        totalSpins: demoHistory.length,
-        totalUsers: demoUsers.filter(u => u.role === 'user').length,
-        totalDonations,
-        totalDonationAmount,
-        prizeStats,
-      },
-    };
   },
 
   async addPrize(prize: Omit<Prize, 'id'>): Promise<{ success: boolean; prize?: Prize }> {
     await delay(300);
     const newPrize: Prize = { ...prize, id: String(demoPrizes.length + 1), is_active: true };
     demoPrizes.push(newPrize);
+    invalidateCache('getPrizes');
     return { success: true, prize: newPrize };
   },
 
@@ -218,6 +346,7 @@ const demoApi = {
     const index = demoPrizes.findIndex(p => p.id === prize.id);
     if (index !== -1) {
       demoPrizes[index] = prize;
+      invalidateCache('getPrizes');
       return { success: true };
     }
     return { success: false };
@@ -228,9 +357,30 @@ const demoApi = {
     const index = demoPrizes.findIndex(p => p.id === id);
     if (index !== -1) {
       demoPrizes.splice(index, 1);
+      invalidateCache('getPrizes');
       return { success: true };
     }
     return { success: false };
+  },
+
+  async getEventSettings(): Promise<{ success: boolean; settings: EventSettings }> {
+    return fetchWithCache('getEventSettings', 'getEventSettings', async () => {
+      await delay(100);
+      const stored = localStorage.getItem(STORAGE_KEY_EVENT_SETTINGS);
+      if (stored) {
+        try {
+          return { success: true, settings: JSON.parse(stored) as EventSettings };
+        } catch { /* ignore */ }
+      }
+      return { success: true, settings: { startDate: '', endDate: '', startTime: '08:00', endTime: '20:00' } };
+    });
+  },
+
+  async saveEventSettings(settings: EventSettings): Promise<{ success: boolean }> {
+    await delay(300);
+    localStorage.setItem(STORAGE_KEY_EVENT_SETTINGS, JSON.stringify(settings));
+    invalidateCache('getEventSettings');
+    return { success: true };
   },
 };
 
@@ -239,6 +389,8 @@ function delay(ms: number): Promise<void> {
 }
 
 // ===== REAL API =====
+const FETCH_TIMEOUT = 15_000;
+
 async function fetchApi<T>(action: string, params: Record<string, string> = {}, method: 'GET' | 'POST' = 'GET', body?: unknown): Promise<T> {
   const url = new URL(SCRIPT_URL);
   url.searchParams.set('action', action);
@@ -247,9 +399,13 @@ async function fetchApi<T>(action: string, params: Record<string, string> = {}, 
     url.searchParams.set(key, value);
   });
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
   const options: RequestInit = {
     method,
     redirect: 'follow',
+    signal: controller.signal,
   };
 
   if (method === 'POST' && body) {
@@ -258,17 +414,26 @@ async function fetchApi<T>(action: string, params: Record<string, string> = {}, 
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url.toString(), options);
-  return response.json();
+  try {
+    const response = await fetch(url.toString(), options);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 const realApi = {
   async getPrizes(): Promise<{ success: boolean; prizes: Prize[] }> {
-    return fetchApi('getPrizes');
+    return fetchWithCache('getPrizes', 'getPrizes', () => fetchApi('getPrizes'));
   },
 
   async spin(userId: string): Promise<SpinResult> {
-    return fetchApi('spin', { userId });
+    const result = await fetchApi<SpinResult>('spin', { userId });
+    invalidateCache('getPrizes', 'getHistory', 'getAllHistory', 'getStats');
+    return result;
   },
 
   async enterEmployee(data: { employeeId: string; name: string }): Promise<{ success: boolean; user?: User; error?: string }> {
@@ -280,37 +445,71 @@ const realApi = {
   },
 
   async getHistory(userId: string): Promise<{ success: boolean; history: SpinHistory[] }> {
-    return fetchApi('getHistory', { userId });
+    return fetchWithCache(`getHistory:${userId}`, 'getHistory', () => fetchApi('getHistory', { userId }));
   },
 
   async getAllHistory(): Promise<{ success: boolean; history: SpinHistory[] }> {
-    return fetchApi('getAllHistory');
+    return fetchWithCache('getAllHistory', 'getAllHistory', () => fetchApi('getAllHistory'));
   },
 
   async donatePrize(historyId: string, amount: number): Promise<{ success: boolean; error?: string }> {
-    return fetchApi('donatePrize', { historyId, amount: String(amount) });
+    const result = await fetchApi<{ success: boolean; error?: string }>('donatePrize', { historyId, amount: String(amount) });
+    if (result.success) {
+      invalidateCache('getHistory', 'getAllHistory', 'getStats');
+    }
+    return result;
   },
 
   async getStats(): Promise<{ success: boolean; stats: { totalSpins: number; totalUsers: number; totalDonations: number; totalDonationAmount: number; prizeStats: Record<string, number> } }> {
-    return fetchApi('getStats');
+    return fetchWithCache('getStats', 'getStats', () => fetchApi('getStats'));
   },
 
   async addPrize(prize: Omit<Prize, 'id'>): Promise<{ success: boolean; prize?: Prize }> {
-    return fetchApi('addPrize', {}, 'POST', prize);
+    const result = await fetchApi<{ success: boolean; prize?: Prize }>('addPrize', {}, 'POST', prize);
+    if (result.success) {
+      invalidateCache('getPrizes');
+    }
+    return result;
   },
 
   async updatePrize(prize: Prize): Promise<{ success: boolean }> {
-    return fetchApi('updatePrize', {}, 'POST', prize);
+    const result = await fetchApi<{ success: boolean }>('updatePrize', {}, 'POST', prize);
+    if (result.success) {
+      invalidateCache('getPrizes');
+    }
+    return result;
   },
 
   async deletePrize(id: string): Promise<{ success: boolean }> {
-    return fetchApi('deletePrize', { id });
+    const result = await fetchApi<{ success: boolean }>('deletePrize', { id });
+    if (result.success) {
+      invalidateCache('getPrizes');
+    }
+    return result;
+  },
+
+  async getEventSettings(): Promise<{ success: boolean; settings: EventSettings }> {
+    return fetchWithCache('getEventSettings', 'getEventSettings', () =>
+      fetchApi('getEventSettings')
+    );
+  },
+
+  async saveEventSettings(settings: EventSettings): Promise<{ success: boolean }> {
+    const result = await fetchApi<{ success: boolean }>('saveEventSettings', {}, 'POST', settings);
+    if (result.success) {
+      invalidateCache('getEventSettings');
+    }
+    return result;
   },
 };
 
 // Export API based on mode
 export const api = DEMO_MODE ? demoApi : realApi;
 export const isDemoMode = DEMO_MODE;
+
+// ===== PRELOAD =====
+// เริ่มโหลด prizes ทันทีตอน module load (ไม่รอ component mount)
+export const preloadPrizes = api.getPrizes();
 
 // ===== EMPLOYEE WHITELIST API =====
 
@@ -322,19 +521,20 @@ export async function fetchAllowedEmployees(): Promise<string[]> {
     return getAllowedEmployees();
   }
 
-  try {
-    const result = await fetchApi<{ success: boolean; employees: string[] }>('getAllowedEmployees');
-    if (result.success) {
-      // Sync to localStorage
-      localStorage.setItem(STORAGE_KEY_EMPLOYEES, JSON.stringify(result.employees));
-      allowedEmployeeIds = result.employees;
-      return result.employees;
+  return fetchWithCache('getAllowedEmployees', 'getAllowedEmployees', async () => {
+    try {
+      const result = await fetchApi<{ success: boolean; employees: string[] }>('getAllowedEmployees');
+      if (result.success) {
+        // Sync to localStorage
+        localStorage.setItem(STORAGE_KEY_EMPLOYEES, JSON.stringify(result.employees));
+        allowedEmployeeIds = result.employees;
+        return result.employees;
+      }
+    } catch (error) {
+      console.error('Failed to fetch allowed employees:', error);
     }
-  } catch (error) {
-    console.error('Failed to fetch allowed employees:', error);
-  }
-
-  return getAllowedEmployees();
+    return getAllowedEmployees();
+  });
 }
 
 export async function saveAllowedEmployees(ids: string[]): Promise<boolean> {
@@ -347,6 +547,9 @@ export async function saveAllowedEmployees(ids: string[]): Promise<boolean> {
 
   try {
     const result = await fetchApi<{ success: boolean }>('setAllowedEmployees', {}, 'POST', { employees: ids });
+    if (result.success) {
+      invalidateCache('getAllowedEmployees');
+    }
     return result.success;
   } catch (error) {
     console.error('Failed to save allowed employees:', error);

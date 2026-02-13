@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RedEnvelopeIcon, TagIcon, UserIcon, AlertIcon, ArrowRightIcon } from './icons';
+import { TagIcon, UserIcon, AlertIcon, ArrowRightIcon } from './icons';
 
 interface EmployeeFormProps {
   onSubmit: (data: { employeeId: string; name: string }) => Promise<{ success: boolean; error?: string }>;
@@ -18,7 +18,6 @@ export function EmployeeForm({ onSubmit, onAdminLogin, loading }: EmployeeFormPr
     e.preventDefault();
     setError('');
 
-    // ตรวจสอบว่าเป็น admin password หรือไม่
     if (employeeId.trim() === ADMIN_PASSWORD && onAdminLogin) {
       const result = await onAdminLogin(employeeId.trim());
       if (!result.success) {
@@ -44,86 +43,56 @@ export function EmployeeForm({ onSubmit, onAdminLogin, loading }: EmployeeFormPr
   };
 
   return (
-    <div className="relative">
-      {/* Festive glow behind card */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-yellow-400/30 to-red-500/20 blur-2xl transform scale-110" />
-
-      <div className="relative bg-gradient-to-b from-red-600 via-red-700 to-red-800 rounded-2xl p-10 w-full max-w-md border-4 border-yellow-400 shadow-2xl overflow-hidden">
-        {/* Chinese pattern overlay */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `repeating-linear-gradient(45deg, #FFD700 0, #FFD700 1px, transparent 0, transparent 50%)`,
-            backgroundSize: '15px 15px',
-          }} />
-        </div>
-
-        {/* Corner accents */}
-        <div className="absolute top-3 left-3 w-10 h-10 border-t-3 border-l-3 border-yellow-400 rounded-tl-xl" />
-        <div className="absolute top-3 right-3 w-10 h-10 border-t-3 border-r-3 border-yellow-400 rounded-tr-xl" />
-        <div className="absolute bottom-3 left-3 w-10 h-10 border-b-3 border-l-3 border-yellow-400 rounded-bl-xl" />
-        <div className="absolute bottom-3 right-3 w-10 h-10 border-b-3 border-r-3 border-yellow-400 rounded-br-xl" />
-
-        {/* Top decoration */}
-        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-24 h-3 bg-gradient-to-r from-yellow-500 via-yellow-300 to-yellow-500 rounded-b-full" />
-
-        {/* Header */}
-        <div className="text-center mb-10 relative z-10">
-          {/* Icon */}
-          <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-600 flex items-center justify-center shadow-xl ring-4 ring-yellow-300/40">
-            <RedEnvelopeIcon className="w-10 h-10 text-red-600" />
+    <div className="relative w-full max-w-md">
+      <div className="glass-card rounded-2xl p-8 border border-yellow-500/10">
+        <div className="text-center mb-8">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg shadow-red-500/20 border border-yellow-500/20">
+            <span className="text-2xl">🧧</span>
           </div>
-
-          <h2 className="text-2xl font-bold text-yellow-300 mb-2" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-            ลงทะเบียนร่วมสนุก
-          </h2>
-          <div className="w-20 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto my-3" />
-          <p className="text-red-200 text-sm">กรอกข้อมูลเพื่อรับสิทธิ์หมุนวงล้อ</p>
+          <h2 className="text-xl font-bold text-white mb-1">ลงทะเบียนร่วมสนุก</h2>
+          <p className="text-white/40 text-sm">กรอกข้อมูลเพื่อรับสิทธิ์หมุนวงล้อ</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-yellow-300 text-sm mb-2 font-bold tracking-wide">
-              รหัสพนักงาน
-            </label>
+            <label className="block text-yellow-500/70 text-sm mb-2 font-medium">รหัสพนักงาน</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <TagIcon className="w-5 h-5 text-red-400" />
+                <TagIcon className="w-4 h-4 text-yellow-500/30" />
               </div>
               <input
                 type="text"
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
                 placeholder="กรอกรหัสพนักงาน"
-                className="w-full pl-12 pr-4 py-4 rounded-xl bg-gradient-to-b from-yellow-50 to-orange-50 text-red-800 placeholder-red-300 border-2 border-yellow-400 font-medium focus:border-yellow-300 focus:outline-none focus:ring-4 focus:ring-yellow-400/30 transition-all"
+                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 text-white placeholder-white/25 border border-yellow-500/10 font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/15 transition-all"
                 disabled={loading}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-yellow-300 text-sm mb-2 font-bold tracking-wide">
-              ชื่อ - นามสกุล
-            </label>
+            <label className="block text-yellow-500/70 text-sm mb-2 font-medium">ชื่อ - นามสกุล</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <UserIcon className="w-5 h-5 text-red-400" />
+                <UserIcon className="w-4 h-4 text-yellow-500/30" />
               </div>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="กรอกชื่อและนามสกุล"
-                className="w-full pl-12 pr-4 py-4 rounded-xl bg-gradient-to-b from-yellow-50 to-orange-50 text-red-800 placeholder-red-300 border-2 border-yellow-400 font-medium focus:border-yellow-300 focus:outline-none focus:ring-4 focus:ring-yellow-400/30 transition-all"
+                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 text-white placeholder-white/25 border border-yellow-500/10 font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/15 transition-all"
                 disabled={loading}
               />
             </div>
           </div>
 
           {error && (
-            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-xl px-5 py-4 shadow-lg">
-              <div className="flex items-center gap-3">
-                <AlertIcon className="w-5 h-5 text-red-500" />
-                <p className="text-red-600 font-bold">{error}</p>
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+              <div className="flex items-center gap-2.5">
+                <AlertIcon className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <p className="text-red-300 text-sm font-medium">{error}</p>
               </div>
             </div>
           )}
@@ -131,24 +100,21 @@ export function EmployeeForm({ onSubmit, onAdminLogin, loading }: EmployeeFormPr
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 text-red-700 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed text-lg tracking-wide mt-4 border-2 border-yellow-500 shadow-lg hover:shadow-xl transition-all hover:from-yellow-300 hover:to-yellow-300"
+            className="w-full py-3.5 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-yellow-400 rounded-xl font-bold disabled:opacity-40 disabled:cursor-not-allowed text-base tracking-wide transition-all shadow-lg shadow-red-900/30 hover:shadow-red-800/40 border border-yellow-500/20 mt-2"
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-3">
-                <span className="w-5 h-5 border-2 border-red-700/30 border-t-red-700 rounded-full animate-spin" />
+              <span className="flex items-center justify-center gap-2.5">
+                <span className="w-4 h-4 border-2 border-yellow-400/20 border-t-yellow-400 rounded-full animate-spin" />
                 กำลังดำเนินการ...
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
                 เข้าร่วมกิจกรรม
-                <ArrowRightIcon className="w-5 h-5" />
+                <ArrowRightIcon className="w-4 h-4" />
               </span>
             )}
           </button>
         </form>
-
-        {/* Bottom decoration */}
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-24 h-3 bg-gradient-to-r from-yellow-500 via-yellow-300 to-yellow-500 rounded-t-full" />
       </div>
     </div>
   );

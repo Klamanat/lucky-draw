@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { fetchAllowedEmployees, saveAllowedEmployees } from '../../services/api';
-import { UsersIcon, LockIcon, ClipboardIcon, FileTextIcon, TrashIcon, PlusIcon, MinusIcon, CheckIcon, XIcon, InboxIcon } from '../../components/icons';
+import { LockIcon, ClipboardIcon, FileTextIcon, TrashIcon, PlusIcon, MinusIcon, CheckIcon, XIcon, InboxIcon } from '../../components/icons';
 
 export function EmployeeManager() {
   const { isAdmin } = useAuth();
@@ -88,15 +88,12 @@ export function EmployeeManager() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-2xl bg-red-500/30 blur-xl" />
-          <div className="relative glass-card rounded-2xl p-10 text-center border-2 border-yellow-500/30">
-            <LockIcon className="w-10 h-10 text-red-500 mb-4 mx-auto" />
-            <p className="text-red-700 font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
-            <Link to="/" className="px-8 py-3 btn-premium rounded-xl inline-block font-bold">
-              กลับหน้าหลัก
-            </Link>
-          </div>
+        <div className="glass-card rounded-2xl p-10 text-center border border-white/10">
+          <LockIcon className="w-8 h-8 text-red-400 mb-4 mx-auto" />
+          <p className="text-white font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
+          <Link to="/" className="px-8 py-3 btn-premium rounded-xl inline-block font-bold">
+            กลับหน้าหลัก
+          </Link>
         </div>
       </div>
     );
@@ -106,19 +103,16 @@ export function EmployeeManager() {
     <div className="min-h-screen p-4 py-16">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <UsersIcon className="w-8 h-8 text-red-500" />
-              <h1 className="text-3xl font-bold">
-                <span className="gold-shimmer">จัดการรหัสพนักงาน</span>
-              </h1>
-            </div>
-            <div className="w-20 h-1 bg-gradient-to-r from-yellow-400 to-transparent mt-2 ml-12" />
+            <h1 className="text-2xl font-bold">
+              <span className="gold-shimmer">จัดการรหัสพนักงาน</span>
+            </h1>
+            <div className="divider-gold w-16 mt-2" />
           </div>
           <Link
             to="/admin"
-            className="glass-card px-6 py-3 text-red-700 rounded-xl hover:bg-white/80 font-bold border-2 border-yellow-500/30 transition-all"
+            className="glass-card px-5 py-2.5 text-white/60 rounded-xl hover:bg-white/10 font-medium border border-white/10 transition-all text-sm"
           >
             กลับ
           </Link>
@@ -126,154 +120,142 @@ export function EmployeeManager() {
 
         {/* Notifications */}
         {saving && (
-          <div className="mb-6 bg-yellow-50 border-2 border-yellow-400 text-yellow-700 px-6 py-4 rounded-xl flex items-center justify-center gap-3 shadow-lg">
-            <div className="w-5 h-5 border-2 border-yellow-400 border-t-yellow-700 rounded-full animate-spin" />
-            <span className="font-bold">กำลังบันทึก...</span>
+          <div className="mb-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-5 py-3 rounded-xl flex items-center justify-center gap-2 text-sm">
+            <div className="w-4 h-4 border-2 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin" />
+            <span className="font-medium">กำลังบันทึก...</span>
           </div>
         )}
         {saved && !saving && (
-          <div className="mb-6 bg-green-50 border-2 border-green-400 text-green-700 px-6 py-4 rounded-xl flex items-center justify-center gap-3 shadow-lg">
-            <CheckIcon className="w-6 h-6 text-green-500" />
-            <span className="font-bold">บันทึกเรียบร้อยแล้ว</span>
+          <div className="mb-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 px-5 py-3 rounded-xl flex items-center justify-center gap-2 text-sm">
+            <CheckIcon className="w-4 h-4" />
+            <span className="font-medium">บันทึกเรียบร้อยแล้ว</span>
           </div>
         )}
 
         {/* Info Card */}
-        <div className="relative mb-8">
-          <div className="absolute inset-0 rounded-2xl bg-yellow-500/20 blur-xl" />
-          <div className="relative glass-card rounded-2xl p-6 border-2 border-yellow-500/30">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg border-2 border-yellow-400">
-                <ClipboardIcon className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <p className="text-red-700 font-medium">
-                  {loading ? (
-                    <span className="text-gray-400">กำลังโหลดข้อมูล...</span>
-                  ) : employees.length === 0 ? (
-                    <span className="text-yellow-600 font-bold">ยังไม่มีการจำกัด - ทุกคนสามารถเข้าร่วมได้</span>
-                  ) : (
-                    <>มีสิทธิ์เข้าร่วม <span className="font-bold text-red-800 text-xl">{employees.length}</span> รหัส</>
-                  )}
-                </p>
-              </div>
+        <div className="glass-card rounded-xl p-5 border border-white/5 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-lg">
+              <ClipboardIcon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-white/70 text-sm font-medium">
+                {loading ? (
+                  <span className="text-white/30">กำลังโหลดข้อมูล...</span>
+                ) : employees.length === 0 ? (
+                  <span className="text-amber-300 font-bold">ยังไม่มีการจำกัด - ทุกคนสามารถเข้าร่วมได้</span>
+                ) : (
+                  <>มีสิทธิ์เข้าร่วม <span className="font-bold text-white text-lg">{employees.length}</span> รหัส</>
+                )}
+              </p>
             </div>
           </div>
         </div>
 
         {/* Add Single Employee */}
-        <div className="relative mb-6">
-          <div className="absolute inset-0 rounded-2xl bg-yellow-500/10 blur-xl" />
-          <div className="relative glass-card rounded-2xl p-6 border-2 border-yellow-500/20">
-            <label className="block text-red-700 font-bold mb-3">เพิ่มรหัสพนักงาน</label>
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={newEmployeeId}
-                onChange={(e) => setNewEmployeeId(e.target.value.toUpperCase())}
-                onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                placeholder="เช่น EMP001"
-                className="flex-1 px-5 py-4 rounded-xl bg-gradient-to-b from-yellow-50 to-orange-50 border-2 border-yellow-400 font-mono text-lg tracking-wider text-red-800 focus:border-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-400/30"
-              />
-              <button
-                onClick={handleAdd}
-                disabled={!newEmployeeId.trim() || saving}
-                className="px-8 py-4 btn-gold rounded-xl font-bold disabled:opacity-50 transition-all"
-              >
-                เพิ่ม
-              </button>
-            </div>
+        <div className="glass-card rounded-xl p-5 border border-white/5 mb-4">
+          <label className="block text-white/60 font-medium text-sm mb-2">เพิ่มรหัสพนักงาน</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newEmployeeId}
+              onChange={(e) => setNewEmployeeId(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+              placeholder="เช่น EMP001"
+              className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 font-mono text-sm tracking-wider text-white focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
+            />
+            <button
+              onClick={handleAdd}
+              disabled={!newEmployeeId.trim() || saving}
+              className="px-6 py-3 btn-gold rounded-xl font-bold disabled:opacity-40 transition-all text-sm"
+            >
+              เพิ่ม
+            </button>
           </div>
         </div>
 
         {/* Bulk Add Toggle */}
-        <div className="mb-6">
+        <div className="mb-4">
           <button
             onClick={() => setShowBulkInput(!showBulkInput)}
-            className="text-yellow-300 font-bold hover:text-yellow-200 transition-colors flex items-center gap-2"
+            className="text-yellow-500 text-sm font-medium hover:text-yellow-400 transition-colors flex items-center gap-1.5"
           >
-            {showBulkInput ? <><MinusIcon className="w-5 h-5 inline" /> ซ่อน</> : <><PlusIcon className="w-5 h-5 inline" /> เพิ่มหลายรหัสพร้อมกัน</>}
+            {showBulkInput ? <><MinusIcon className="w-4 h-4" /> ซ่อน</> : <><PlusIcon className="w-4 h-4" /> เพิ่มหลายรหัสพร้อมกัน</>}
           </button>
         </div>
 
         {/* Bulk Add Section */}
         {showBulkInput && (
-          <div className="relative mb-6">
-            <div className="absolute inset-0 rounded-2xl bg-yellow-500/10 blur-xl" />
-            <div className="relative glass-card rounded-2xl p-6 border-2 border-yellow-500/20">
-              <label className="block text-red-700 font-bold mb-3">
-                เพิ่มหลายรหัส (คั่นด้วย , หรือขึ้นบรรทัดใหม่)
-              </label>
-              <textarea
-                value={bulkInput}
-                onChange={(e) => setBulkInput(e.target.value.toUpperCase())}
-                placeholder="EMP006&#10;EMP007&#10;EMP008"
-                rows={5}
-                className="w-full px-5 py-4 rounded-xl bg-gradient-to-b from-yellow-50 to-orange-50 border-2 border-yellow-400 font-mono tracking-wider text-red-800 resize-none focus:border-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-400/30"
-              />
-              <button
-                onClick={handleBulkAdd}
-                disabled={!bulkInput.trim() || saving}
-                className="mt-4 px-8 py-3 btn-gold rounded-xl font-bold disabled:opacity-50"
-              >
-                เพิ่มทั้งหมด
-              </button>
-            </div>
+          <div className="glass-card rounded-xl p-5 border border-white/5 mb-4">
+            <label className="block text-white/60 font-medium text-sm mb-2">
+              เพิ่มหลายรหัส (คั่นด้วย , หรือขึ้นบรรทัดใหม่)
+            </label>
+            <textarea
+              value={bulkInput}
+              onChange={(e) => setBulkInput(e.target.value.toUpperCase())}
+              placeholder="EMP006&#10;EMP007&#10;EMP008"
+              rows={4}
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 font-mono text-sm tracking-wider text-white resize-none focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
+            />
+            <button
+              onClick={handleBulkAdd}
+              disabled={!bulkInput.trim() || saving}
+              className="mt-3 px-6 py-2.5 btn-gold rounded-xl font-bold disabled:opacity-40 text-sm"
+            >
+              เพิ่มทั้งหมด
+            </button>
           </div>
         )}
 
         {/* Employee List */}
-        <div className="relative">
-          <div className="absolute inset-0 rounded-2xl bg-yellow-500/10 blur-xl" />
-          <div className="relative glass-card rounded-2xl p-6 border-2 border-yellow-500/20">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-red-800 font-bold text-lg flex items-center gap-2">
-                <FileTextIcon className="w-5 h-5 text-red-600" /> รายชื่อรหัสพนักงาน
-              </h3>
-              {employees.length > 0 && (
-                <button
-                  onClick={handleClearAll}
-                  disabled={saving}
-                  className="text-red-500 font-bold hover:text-red-600 disabled:opacity-50 transition-colors flex items-center gap-2"
-                >
-                  <TrashIcon className="w-4 h-4" /> ล้างทั้งหมด
-                </button>
-              )}
-            </div>
-
-            {loading ? (
-              <div className="flex flex-col items-center py-12 gap-4">
-                <div className="w-10 h-10 border-4 border-yellow-300 border-t-yellow-600 rounded-full animate-spin" />
-                <p className="text-red-700 font-medium">กำลังโหลด...</p>
-              </div>
-            ) : employees.length === 0 ? (
-              <div className="text-center py-12">
-                <InboxIcon className="w-12 h-12 text-gray-300 mb-4 mx-auto" />
-                <p className="text-gray-400 font-medium">ยังไม่มีรายชื่อ</p>
-                <p className="text-gray-400 text-sm mt-1">(ทุกคนสามารถเข้าร่วมได้)</p>
-              </div>
-            ) : (
-              <div className="max-h-96 overflow-y-auto pr-2">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {employees.map((id) => (
-                    <div
-                      key={id}
-                      className="flex items-center justify-between bg-gradient-to-r from-red-50 via-yellow-50 to-red-50 rounded-xl px-4 py-3 border-2 border-yellow-300 group hover:border-yellow-500 transition-colors"
-                    >
-                      <span className="font-mono font-bold text-red-700 tracking-wider">{id}</span>
-                      <button
-                        onClick={() => handleRemove(id)}
-                        disabled={saving}
-                        className="text-gray-400 hover:text-red-500 disabled:opacity-50 transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        <XIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        <div className="glass-card rounded-xl p-5 border border-white/5">
+          <div className="flex justify-between items-center mb-5">
+            <h3 className="text-white font-bold text-sm flex items-center gap-2">
+              <FileTextIcon className="w-4 h-4 text-white/40" /> รายชื่อรหัสพนักงาน
+            </h3>
+            {employees.length > 0 && (
+              <button
+                onClick={handleClearAll}
+                disabled={saving}
+                className="text-red-400 text-xs font-medium hover:text-red-300 disabled:opacity-40 transition-colors flex items-center gap-1.5"
+              >
+                <TrashIcon className="w-3 h-3" /> ล้างทั้งหมด
+              </button>
             )}
           </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center py-12 gap-3">
+              <div className="w-8 h-8 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
+              <p className="text-white/30 text-sm">กำลังโหลด...</p>
+            </div>
+          ) : employees.length === 0 ? (
+            <div className="text-center py-12">
+              <InboxIcon className="w-10 h-10 text-white/10 mb-3 mx-auto" />
+              <p className="text-white/30 text-sm font-medium">ยังไม่มีรายชื่อ</p>
+              <p className="text-white/20 text-xs mt-1">(ทุกคนสามารถเข้าร่วมได้)</p>
+            </div>
+          ) : (
+            <div className="max-h-96 overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {employees.map((id) => (
+                  <div
+                    key={id}
+                    className="flex items-center justify-between bg-white/[0.03] rounded-lg px-3 py-2.5 border border-white/5 group hover:border-yellow-500/20 transition-colors"
+                  >
+                    <span className="font-mono font-medium text-white/70 text-sm tracking-wider">{id}</span>
+                    <button
+                      onClick={() => handleRemove(id)}
+                      disabled={saving}
+                      className="text-white/20 hover:text-red-400 disabled:opacity-40 transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <XIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

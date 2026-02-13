@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { SpinHistory } from '../../types';
 import { api } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import { LockIcon, ClipboardIcon, GiftIcon, ClockIcon, InboxIcon, HeartIcon, CheckIcon } from '../../components/icons';
+import { LockIcon, GiftIcon, ClockIcon, InboxIcon, HeartIcon, CheckIcon } from '../../components/icons';
 
 export function SpinLogs() {
   const { isAdmin } = useAuth();
@@ -30,18 +30,12 @@ export function SpinLogs() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-2xl bg-red-500/30 blur-xl" />
-          <div className="relative glass-card rounded-2xl p-10 text-center border-2 border-yellow-500/30">
-            <LockIcon className="w-10 h-10 text-red-500 mb-4 mx-auto" />
-            <p className="text-red-700 font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
-            <Link
-              to="/"
-              className="px-8 py-3 btn-premium rounded-xl inline-block font-bold"
-            >
-              กลับหน้าหลัก
-            </Link>
-          </div>
+        <div className="glass-card rounded-2xl p-10 text-center border border-white/10">
+          <LockIcon className="w-8 h-8 text-red-400 mb-4 mx-auto" />
+          <p className="text-white font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
+          <Link to="/" className="px-8 py-3 btn-premium rounded-xl inline-block font-bold">
+            กลับหน้าหลัก
+          </Link>
         </div>
       </div>
     );
@@ -51,23 +45,20 @@ export function SpinLogs() {
     <div className="min-h-screen p-4 py-16">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <ClipboardIcon className="w-8 h-8 text-red-500" />
-              <h1 className="text-3xl font-bold">
-                <span className="gold-shimmer">ประวัติการหมุนทั้งหมด</span>
-              </h1>
-            </div>
-            <div className="w-20 h-1 bg-gradient-to-r from-yellow-400 to-transparent mt-2 ml-12" />
+            <h1 className="text-2xl font-bold">
+              <span className="gold-shimmer">ประวัติการหมุนทั้งหมด</span>
+            </h1>
+            <div className="divider-gold w-16 mt-2" />
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-yellow-300 text-sm font-bold bg-red-700/50 px-4 py-2 rounded-full border border-yellow-400">
+          <div className="flex items-center gap-3">
+            <span className="text-yellow-400 text-xs font-medium bg-yellow-500/10 px-3 py-1.5 rounded-full border border-yellow-500/20">
               {history.length} รายการ
             </span>
             <Link
               to="/admin"
-              className="glass-card px-6 py-3 text-red-700 rounded-xl hover:bg-white/80 font-bold border-2 border-yellow-500/30 transition-all"
+              className="glass-card px-5 py-2.5 text-white/60 rounded-xl hover:bg-white/10 font-medium border border-white/10 transition-all text-sm"
             >
               กลับ
             </Link>
@@ -75,80 +66,73 @@ export function SpinLogs() {
         </div>
 
         {loading ? (
-          <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-yellow-500/20 blur-xl" />
-            <div className="relative glass-card rounded-2xl p-12 text-center border-2 border-yellow-500/30">
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin" />
-                <p className="text-red-700 font-medium">กำลังโหลดข้อมูล...</p>
-              </div>
+          <div className="glass-card rounded-2xl p-12 text-center border border-white/10">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-10 h-10 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
+              <p className="text-white/40 text-sm font-medium">กำลังโหลดข้อมูล...</p>
             </div>
           </div>
         ) : (
-          <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-yellow-500/10 blur-xl" />
-            <div className="relative glass-card rounded-2xl overflow-hidden border-2 border-yellow-500/30">
-              {/* Table Header */}
-              <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 px-6 py-4 border-b-2 border-yellow-400">
-                <div className="grid grid-cols-12 gap-4">
-                  <div className="col-span-2 text-yellow-300 text-sm font-bold tracking-wide">รหัสพนักงาน</div>
-                  <div className="col-span-2 text-yellow-300 text-sm font-bold tracking-wide">ชื่อ</div>
-                  <div className="col-span-3 text-yellow-300 text-sm font-bold tracking-wide">รางวัล</div>
-                  <div className="col-span-2 text-yellow-300 text-sm font-bold tracking-wide">สถานะ</div>
-                  <div className="col-span-3 text-yellow-300 text-sm font-bold tracking-wide">เวลา</div>
-                </div>
+          <div className="glass-card rounded-2xl overflow-hidden border border-white/5">
+            {/* Table Header */}
+            <div className="bg-white/[0.03] px-5 py-3.5 border-b border-white/5">
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-2 text-white/40 text-xs font-medium tracking-wide">รหัสพนักงาน</div>
+                <div className="col-span-2 text-white/40 text-xs font-medium tracking-wide">ชื่อ</div>
+                <div className="col-span-3 text-white/40 text-xs font-medium tracking-wide">รางวัล</div>
+                <div className="col-span-2 text-white/40 text-xs font-medium tracking-wide">สถานะ</div>
+                <div className="col-span-3 text-white/40 text-xs font-medium tracking-wide">เวลา</div>
               </div>
+            </div>
 
-              {/* Table Body */}
-              <div className="divide-y divide-yellow-200">
-                {history.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className={`px-6 py-4 grid grid-cols-12 gap-4 items-center transition-colors hover:bg-yellow-50/50 ${index % 2 === 0 ? 'bg-white' : 'bg-red-50/30'
-                      }`}
-                  >
-                    <div className="col-span-2">
-                      <span className="font-mono text-sm font-bold text-red-700 bg-yellow-100 px-2 py-1 rounded border border-yellow-300">
-                        {item.employee_id}
-                      </span>
-                    </div>
-                    <div className="col-span-2 text-red-700 font-medium">{item.user_name}</div>
-                    <div className="col-span-3">
-                      <span className="inline-flex items-center gap-2 text-red-800 font-bold bg-gradient-to-r from-yellow-100 to-orange-100 px-3 py-1 rounded-lg border-2 border-yellow-300">
-                        <GiftIcon className="w-4 h-4 text-red-600" />
-                        {item.prize_name}
-                      </span>
-                    </div>
-                    <div className="col-span-2">
-                      {item.status === 'donated' ? (
-                        <div>
-                          <span className="inline-flex items-center gap-1 text-pink-700 font-bold bg-pink-100 px-3 py-1 rounded-lg border border-pink-300 text-sm">
-                            <HeartIcon className="w-3 h-3" /> บริจาค
-                          </span>
-                          {item.donation_amount ? (
-                            <p className="text-pink-600 text-xs font-bold mt-1">{item.donation_amount.toLocaleString()} บาท</p>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-green-700 font-bold bg-green-100 px-3 py-1 rounded-lg border border-green-300 text-sm">
-                          <CheckIcon className="w-3 h-3" /> รับแล้ว
+            {/* Table Body */}
+            <div className="divide-y divide-white/[0.03]">
+              {history.map((item) => (
+                <div
+                  key={item.id}
+                  className="px-5 py-3.5 grid grid-cols-12 gap-4 items-center hover:bg-white/[0.02] transition-colors"
+                >
+                  <div className="col-span-2">
+                    <span className="font-mono text-xs font-medium text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded border border-yellow-500/10">
+                      {item.employee_id}
+                    </span>
+                  </div>
+                  <div className="col-span-2 text-white/70 text-sm font-medium">{item.user_name}</div>
+                  <div className="col-span-3">
+                    <span className="inline-flex items-center gap-1.5 text-white text-sm font-medium bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                      <GiftIcon className="w-3 h-3 text-yellow-500" />
+                      {item.prize_name}
+                    </span>
+                  </div>
+                  <div className="col-span-2">
+                    {item.status === 'donated' ? (
+                      <div>
+                        <span className="inline-flex items-center gap-1 text-pink-300 text-xs font-medium bg-pink-500/10 px-2 py-1 rounded-lg border border-pink-500/10">
+                          <HeartIcon className="w-3 h-3" /> บริจาค
                         </span>
-                      )}
-                    </div>
-                    <div className="col-span-3 text-gray-500 text-sm flex items-center gap-2">
-                      <ClockIcon className="w-4 h-4 text-gray-400" />
-                      {formatDate(item.spun_at)}
-                    </div>
+                        {item.donation_amount ? (
+                          <p className="text-pink-400/70 text-xs mt-0.5">{item.donation_amount.toLocaleString()} บาท</p>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-emerald-300 text-xs font-medium bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/10">
+                        <CheckIcon className="w-3 h-3" /> รับแล้ว
+                      </span>
+                    )}
                   </div>
-                ))}
+                  <div className="col-span-3 text-white/30 text-xs flex items-center gap-1.5">
+                    <ClockIcon className="w-3 h-3" />
+                    {formatDate(item.spun_at)}
+                  </div>
+                </div>
+              ))}
 
-                {history.length === 0 && (
-                  <div className="px-6 py-16 text-center">
-                    <InboxIcon className="w-12 h-12 text-red-300 mb-4 mx-auto" />
-                    <p className="text-red-700 font-bold">ยังไม่มีประวัติการหมุน</p>
-                  </div>
-                )}
-              </div>
+              {history.length === 0 && (
+                <div className="px-6 py-16 text-center">
+                  <InboxIcon className="w-10 h-10 text-white/10 mb-3 mx-auto" />
+                  <p className="text-white/40 font-medium text-sm">ยังไม่มีประวัติการหมุน</p>
+                </div>
+              )}
             </div>
           </div>
         )}
