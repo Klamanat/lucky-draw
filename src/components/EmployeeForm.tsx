@@ -44,45 +44,45 @@ export function EmployeeForm({ onSubmit, onAdminLogin, loading }: EmployeeFormPr
 
   return (
     <div className="relative w-full max-w-md">
-      <div className="glass-card rounded-2xl p-8 border border-yellow-500/10">
+      <div className="glass-card rounded-2xl p-8 border border-yellow-500/25">
         <div className="text-center mb-8">
           <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg shadow-red-500/20 border border-yellow-500/20">
             <span className="text-2xl">🧧</span>
           </div>
           <h2 className="text-xl font-bold text-white mb-1">ลงทะเบียนร่วมสนุก</h2>
-          <p className="text-white/40 text-sm">กรอกข้อมูลเพื่อรับสิทธิ์หมุนวงล้อ</p>
+          <p className="text-white/80 text-sm">กรอกข้อมูลเพื่อรับสิทธิ์หมุนวงล้อ</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-yellow-500/70 text-sm mb-2 font-medium">รหัสพนักงาน</label>
+            <label className="block text-yellow-400 text-sm mb-2 font-medium">รหัสพนักงาน</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <TagIcon className="w-4 h-4 text-yellow-500/30" />
+                <TagIcon className="w-4 h-4 text-yellow-500/60" />
               </div>
               <input
                 type="text"
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
                 placeholder="กรอกรหัสพนักงาน"
-                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 text-white placeholder-white/25 border border-yellow-500/10 font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/15 transition-all"
+                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-black/40 text-white placeholder-white/50 border border-yellow-500/25 font-medium focus:border-yellow-500/50 focus:outline-none focus:ring-2 focus:ring-yellow-500/20 transition-all"
                 disabled={loading}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-yellow-500/70 text-sm mb-2 font-medium">ชื่อ - นามสกุล</label>
+            <label className="block text-yellow-400 text-sm mb-2 font-medium">ชื่อ - นามสกุล</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <UserIcon className="w-4 h-4 text-yellow-500/30" />
+                <UserIcon className="w-4 h-4 text-yellow-500/60" />
               </div>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="กรอกชื่อและนามสกุล"
-                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/5 text-white placeholder-white/25 border border-yellow-500/10 font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/15 transition-all"
+                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-black/40 text-white placeholder-white/50 border border-yellow-500/25 font-medium focus:border-yellow-500/50 focus:outline-none focus:ring-2 focus:ring-yellow-500/20 transition-all"
                 disabled={loading}
               />
             </div>

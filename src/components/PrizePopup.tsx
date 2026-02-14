@@ -70,7 +70,7 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
       </div>
 
       <div className="relative transform animate-bounce-in">
-        <div className="relative glass-card rounded-2xl p-8 max-w-sm w-full text-center border border-yellow-500/15 overflow-hidden">
+        <div className="relative glass-card rounded-2xl p-8 max-w-sm w-full text-center border border-yellow-500/30 overflow-hidden">
           <div className="relative z-10">
             <div className="mb-6 mt-2">
               <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-xl shadow-red-500/30 border border-yellow-500/30">
@@ -80,31 +80,31 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
 
             <h2 className="text-2xl font-bold mb-1 text-yellow-400">恭喜發財</h2>
             <p className="text-white font-bold text-lg">ยินดีด้วย!</p>
-            <p className="text-white/50 text-sm">คุณได้รับรางวัล</p>
+            <p className="text-white/90 text-sm">คุณได้รับรางวัล</p>
 
             <div className="divider-gold w-20 mx-auto my-5" />
 
-            <div className="bg-white/5 py-6 px-5 rounded-xl border border-yellow-500/10 mb-6">
+            <div className="bg-black/30 py-6 px-5 rounded-xl border border-yellow-500/25 mb-6">
               {prize.image_url && (
                 <img src={prize.image_url} alt={prize.name} className="w-20 h-20 object-contain mx-auto mb-3" />
               )}
               <h3 className="text-xl font-bold text-yellow-400">{prize.name}</h3>
               {prize.description && (
-                <p className="text-white/50 text-sm mt-1.5">{prize.description}</p>
+                <p className="text-white/90 text-sm mt-1.5">{prize.description}</p>
               )}
             </div>
 
             {showDonateForm ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-white/50 text-sm font-medium mb-2">จำนวนเงินบริจาค (บาท)</label>
+                  <label className="block text-white/90 text-sm font-medium mb-2">จำนวนเงินบริจาค (บาท)</label>
                   <input
                     type="number"
                     min="1"
                     value={donateAmount}
                     onChange={(e) => setDonateAmount(e.target.value)}
                     placeholder="ระบุจำนวนเงิน"
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-yellow-500/10 text-white font-bold text-lg text-center focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/15"
+                    className="w-full px-4 py-3 rounded-xl bg-black/30 border border-yellow-500/25 text-white font-bold text-lg text-center focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/15"
                     autoFocus
                   />
                 </div>
@@ -124,7 +124,7 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                   <button
                     onClick={() => { setShowDonateForm(false); setDonateAmount(''); }}
                     disabled={donating}
-                    className="py-3.5 px-5 bg-white/5 text-white/60 rounded-xl font-medium hover:bg-white/10 transition-colors border border-white/10 disabled:opacity-40"
+                    className="py-3.5 px-5 bg-black/30 text-white/90 rounded-xl font-medium hover:bg-white/10 transition-colors border border-yellow-500/25 disabled:opacity-40"
                   >
                     ยกเลิก
                   </button>

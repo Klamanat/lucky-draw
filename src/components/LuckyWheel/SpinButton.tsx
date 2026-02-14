@@ -22,7 +22,7 @@ export function SpinButton({ onClick, disabled, spinning, spinsRemaining }: Spin
             relative px-14 py-4 rounded-xl text-lg font-bold tracking-wide
             transition-all duration-300
             ${isDisabled
-              ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
+              ? 'bg-black/50 text-white/60 cursor-not-allowed border border-white/25'
               : 'btn-premium hover:scale-105 active:scale-100'
             }
           `}
@@ -51,9 +51,9 @@ export function SpinButton({ onClick, disabled, spinning, spinsRemaining }: Spin
       </div>
 
       {spinsRemaining !== undefined && (
-        <div className="glass-card px-6 py-3 rounded-xl border border-yellow-500/10">
+        <div className="glass-card px-6 py-3 rounded-xl border border-yellow-500/25">
           <div className="flex items-center gap-3">
-            <span className="text-white/50 text-sm font-medium">สิทธิ์คงเหลือ</span>
+            <span className="text-white/90 text-sm font-medium">สิทธิ์คงเหลือ</span>
             <span
               className="inline-flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg"
               style={{
@@ -64,7 +64,7 @@ export function SpinButton({ onClick, disabled, spinning, spinsRemaining }: Spin
             >
               {spinsRemaining}
             </span>
-            <span className="text-white/50 text-sm font-medium">ครั้ง</span>
+            <span className="text-white/90 text-sm font-medium">ครั้ง</span>
           </div>
         </div>
       )}

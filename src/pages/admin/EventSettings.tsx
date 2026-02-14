@@ -53,7 +53,7 @@ export function EventSettings() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="glass-card rounded-2xl p-10 text-center border border-white/10">
+        <div className="glass-card rounded-2xl p-10 text-center border border-yellow-500/25">
           <LockIcon className="w-8 h-8 text-red-400 mb-4 mx-auto" />
           <p className="text-white font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
           <Link to="/" className="px-8 py-3 btn-premium rounded-xl inline-block font-bold">
@@ -64,7 +64,7 @@ export function EventSettings() {
     );
   }
 
-  const inputClass = "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20";
+  const inputClass = "w-full px-4 py-3 rounded-xl bg-black/30 border border-yellow-500/25 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20";
 
   return (
     <div className="min-h-screen p-4 py-16">
@@ -79,7 +79,7 @@ export function EventSettings() {
           </div>
           <Link
             to="/admin"
-            className="glass-card px-5 py-2.5 text-white/60 rounded-xl hover:bg-white/10 transition-all font-medium border border-white/10 text-sm"
+            className="glass-card px-5 py-2.5 text-white/90 rounded-xl hover:bg-white/10 transition-all font-medium border border-yellow-500/25 text-sm"
           >
             กลับ
           </Link>
@@ -87,14 +87,14 @@ export function EventSettings() {
 
         {/* Form */}
         {loading ? (
-          <div className="glass-card rounded-2xl p-12 text-center border border-white/10">
+          <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/25">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-10 h-10 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
-              <p className="text-white/40 text-sm font-medium">กำลังโหลดข้อมูล...</p>
+              <div className="w-14 h-14 border-yellow-500/25 border-t-yellow-500 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
+              <p className="text-white text-sm font-medium">กำลังโหลดข้อมูล...</p>
             </div>
           </div>
         ) : (
-          <div className="glass-card rounded-2xl p-6 border border-white/5">
+          <div className="glass-card rounded-2xl p-6 border border-yellow-500/25">
             <div className="space-y-6">
               {/* Date Range */}
               <div>
@@ -104,7 +104,7 @@ export function EventSettings() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-white/40 text-xs font-medium mb-1.5">วันที่เริ่ม</label>
+                    <label className="block text-white/90 text-xs font-medium mb-1.5">วันที่เริ่ม</label>
                     <input
                       type="date"
                       value={settings.startDate}
@@ -113,7 +113,7 @@ export function EventSettings() {
                     />
                   </div>
                   <div>
-                    <label className="block text-white/40 text-xs font-medium mb-1.5">วันที่สิ้นสุด</label>
+                    <label className="block text-white/90 text-xs font-medium mb-1.5">วันที่สิ้นสุด</label>
                     <input
                       type="date"
                       value={settings.endDate}
@@ -132,7 +132,7 @@ export function EventSettings() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-white/40 text-xs font-medium mb-1.5">เวลาเริ่ม</label>
+                    <label className="block text-white/90 text-xs font-medium mb-1.5">เวลาเริ่ม</label>
                     <input
                       type="time"
                       value={settings.startTime}
@@ -141,7 +141,7 @@ export function EventSettings() {
                     />
                   </div>
                   <div>
-                    <label className="block text-white/40 text-xs font-medium mb-1.5">เวลาสิ้นสุด</label>
+                    <label className="block text-white/90 text-xs font-medium mb-1.5">เวลาสิ้นสุด</label>
                     <input
                       type="time"
                       value={settings.endTime}

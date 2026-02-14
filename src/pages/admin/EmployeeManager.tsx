@@ -88,7 +88,7 @@ export function EmployeeManager() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="glass-card rounded-2xl p-10 text-center border border-white/10">
+        <div className="glass-card rounded-2xl p-10 text-center border border-yellow-500/25">
           <LockIcon className="w-8 h-8 text-red-400 mb-4 mx-auto" />
           <p className="text-white font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
           <Link to="/" className="px-8 py-3 btn-premium rounded-xl inline-block font-bold">
@@ -112,7 +112,7 @@ export function EmployeeManager() {
           </div>
           <Link
             to="/admin"
-            className="glass-card px-5 py-2.5 text-white/60 rounded-xl hover:bg-white/10 font-medium border border-white/10 transition-all text-sm"
+            className="glass-card px-5 py-2.5 text-white/90 rounded-xl hover:bg-white/10 font-medium border border-yellow-500/25 transition-all text-sm"
           >
             กลับ
           </Link>
@@ -120,8 +120,8 @@ export function EmployeeManager() {
 
         {/* Notifications */}
         {saving && (
-          <div className="mb-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-5 py-3 rounded-xl flex items-center justify-center gap-2 text-sm">
-            <div className="w-4 h-4 border-2 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin" />
+          <div className="mb-4 bg-yellow-500/10 border border-yellow-500/25 text-yellow-400 px-5 py-3 rounded-xl flex items-center justify-center gap-2 text-sm">
+            <div className="w-4 h-4 border-2 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin" style={{ borderWidth: '2px' }} />
             <span className="font-medium">กำลังบันทึก...</span>
           </div>
         )}
@@ -133,15 +133,15 @@ export function EmployeeManager() {
         )}
 
         {/* Info Card */}
-        <div className="glass-card rounded-xl p-5 border border-white/5 mb-6">
+        <div className="glass-card rounded-xl p-5 border border-yellow-500/25 mb-6">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-lg">
               <ClipboardIcon className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-white/70 text-sm font-medium">
+              <p className="text-white/90 text-sm font-medium">
                 {loading ? (
-                  <span className="text-white/30">กำลังโหลดข้อมูล...</span>
+                  <span className="text-white/90">กำลังโหลดข้อมูล...</span>
                 ) : employees.length === 0 ? (
                   <span className="text-amber-300 font-bold">ยังไม่มีการจำกัด - ทุกคนสามารถเข้าร่วมได้</span>
                 ) : (
@@ -153,8 +153,8 @@ export function EmployeeManager() {
         </div>
 
         {/* Add Single Employee */}
-        <div className="glass-card rounded-xl p-5 border border-white/5 mb-4">
-          <label className="block text-white/60 font-medium text-sm mb-2">เพิ่มรหัสพนักงาน</label>
+        <div className="glass-card rounded-xl p-5 border border-yellow-500/25 mb-4">
+          <label className="block text-white/90 font-medium text-sm mb-2">เพิ่มรหัสพนักงาน</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -162,7 +162,7 @@ export function EmployeeManager() {
               onChange={(e) => setNewEmployeeId(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
               placeholder="เช่น EMP001"
-              className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 font-mono text-sm tracking-wider text-white focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
+              className="flex-1 px-4 py-3 rounded-xl bg-black/30 border border-yellow-500/25 font-mono text-sm tracking-wider text-white focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
             />
             <button
               onClick={handleAdd}
@@ -186,8 +186,8 @@ export function EmployeeManager() {
 
         {/* Bulk Add Section */}
         {showBulkInput && (
-          <div className="glass-card rounded-xl p-5 border border-white/5 mb-4">
-            <label className="block text-white/60 font-medium text-sm mb-2">
+          <div className="glass-card rounded-xl p-5 border border-yellow-500/25 mb-4">
+            <label className="block text-white/90 font-medium text-sm mb-2">
               เพิ่มหลายรหัส (คั่นด้วย , หรือขึ้นบรรทัดใหม่)
             </label>
             <textarea
@@ -195,7 +195,7 @@ export function EmployeeManager() {
               onChange={(e) => setBulkInput(e.target.value.toUpperCase())}
               placeholder="EMP006&#10;EMP007&#10;EMP008"
               rows={4}
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 font-mono text-sm tracking-wider text-white resize-none focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
+              className="w-full px-4 py-3 rounded-xl bg-black/30 border border-yellow-500/25 font-mono text-sm tracking-wider text-white resize-none focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
             />
             <button
               onClick={handleBulkAdd}
@@ -208,10 +208,10 @@ export function EmployeeManager() {
         )}
 
         {/* Employee List */}
-        <div className="glass-card rounded-xl p-5 border border-white/5">
+        <div className="glass-card rounded-xl p-5 border border-yellow-500/25">
           <div className="flex justify-between items-center mb-5">
             <h3 className="text-white font-bold text-sm flex items-center gap-2">
-              <FileTextIcon className="w-4 h-4 text-white/40" /> รายชื่อรหัสพนักงาน
+              <FileTextIcon className="w-4 h-4 text-white/90" /> รายชื่อรหัสพนักงาน
             </h3>
             {employees.length > 0 && (
               <button
@@ -226,14 +226,14 @@ export function EmployeeManager() {
 
           {loading ? (
             <div className="flex flex-col items-center py-12 gap-3">
-              <div className="w-8 h-8 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
-              <p className="text-white/30 text-sm">กำลังโหลด...</p>
+              <div className="w-10 h-10 border-yellow-500/25 border-t-yellow-500 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
+              <p className="text-white text-sm">กำลังโหลด...</p>
             </div>
           ) : employees.length === 0 ? (
             <div className="text-center py-12">
               <InboxIcon className="w-10 h-10 text-white/10 mb-3 mx-auto" />
-              <p className="text-white/30 text-sm font-medium">ยังไม่มีรายชื่อ</p>
-              <p className="text-white/20 text-xs mt-1">(ทุกคนสามารถเข้าร่วมได้)</p>
+              <p className="text-white/90 text-sm font-medium">ยังไม่มีรายชื่อ</p>
+              <p className="text-white/90 text-xs mt-1">(ทุกคนสามารถเข้าร่วมได้)</p>
             </div>
           ) : (
             <div className="max-h-96 overflow-y-auto pr-1">
@@ -241,13 +241,13 @@ export function EmployeeManager() {
                 {employees.map((id) => (
                   <div
                     key={id}
-                    className="flex items-center justify-between bg-white/[0.03] rounded-lg px-3 py-2.5 border border-white/5 group hover:border-yellow-500/20 transition-colors"
+                    className="flex items-center justify-between bg-black/30 rounded-lg px-3 py-2.5 border border-yellow-500/25 group hover:border-yellow-500/25 transition-colors"
                   >
-                    <span className="font-mono font-medium text-white/70 text-sm tracking-wider">{id}</span>
+                    <span className="font-mono font-medium text-white/90 text-sm tracking-wider">{id}</span>
                     <button
                       onClick={() => handleRemove(id)}
                       disabled={saving}
-                      className="text-white/20 hover:text-red-400 disabled:opacity-40 transition-colors opacity-0 group-hover:opacity-100"
+                      className="text-white/90 hover:text-red-400 disabled:opacity-40 transition-colors opacity-0 group-hover:opacity-100"
                     >
                       <XIcon className="w-3.5 h-3.5" />
                     </button>

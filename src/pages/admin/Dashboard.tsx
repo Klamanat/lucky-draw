@@ -37,7 +37,7 @@ export function Dashboard() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="glass-card rounded-2xl p-10 text-center border border-yellow-500/10">
+        <div className="glass-card rounded-2xl p-10 text-center border border-yellow-500/25">
           <LockIcon className="w-8 h-8 text-red-400 mb-4 mx-auto" />
           <p className="text-white font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
           <Link to="/" className="px-8 py-3 btn-premium rounded-xl inline-block font-bold">กลับหน้าหลัก</Link>
@@ -61,64 +61,64 @@ export function Dashboard() {
             <h1 className="text-2xl font-bold"><span className="gold-shimmer">ระบบจัดการ</span></h1>
             <div className="divider-gold w-16 mt-2" />
           </div>
-          <Link to="/" className="glass-card px-5 py-2.5 text-white/60 rounded-xl hover:bg-white/10 transition-all text-sm font-medium border border-yellow-500/10">กลับหน้าหลัก</Link>
+          <Link to="/" className="glass-card px-5 py-2.5 text-white/90 rounded-xl hover:bg-white/10 transition-all text-sm font-medium border border-yellow-500/25">กลับหน้าหลัก</Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           {navItems.map(({ to, icon: Icon, title, desc, color }) => (
             <Link key={to} to={to} className="group">
-              <div className="glass-card rounded-2xl p-6 text-center border border-yellow-500/5 group-hover:border-yellow-500/20 transition-all group-hover:bg-white/[0.08]">
-                <div className={`w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform border border-yellow-500/20`}>
+              <div className="glass-card rounded-2xl p-6 text-center border border-yellow-500/25 group-hover:border-yellow-500/25 transition-all group-hover:bg-white/10">
+                <div className={`w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform border border-yellow-500/25`}>
                   <Icon className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-white font-bold text-sm mb-0.5">{title}</p>
-                <p className="text-white/30 text-xs">{desc}</p>
+                <p className="text-white/90 text-xs">{desc}</p>
               </div>
             </Link>
           ))}
         </div>
 
         {loading ? (
-          <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/10">
+          <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/25">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-10 h-10 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
-              <p className="text-white/40 text-sm font-medium">กำลังโหลดข้อมูล...</p>
+              <div className="w-14 h-14 border-yellow-500/25 border-t-yellow-500 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
+              <p className="text-white text-sm font-medium">กำลังโหลดข้อมูล...</p>
             </div>
           </div>
         ) : stats ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="glass-card rounded-2xl p-6 border border-yellow-500/5">
+            <div className="glass-card rounded-2xl p-6 border border-yellow-500/25">
               <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg border border-yellow-500/20">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg border border-yellow-500/25">
                   <TargetIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-white/40 text-xs font-medium mb-0.5">จำนวนหมุนทั้งหมด</p>
+                  <p className="text-white/90 text-xs font-medium mb-0.5">จำนวนหมุนทั้งหมด</p>
                   <p className="text-3xl font-bold text-white">{stats.totalSpins.toLocaleString()}</p>
                 </div>
               </div>
             </div>
 
-            <div className="glass-card rounded-2xl p-6 border border-yellow-500/5">
+            <div className="glass-card rounded-2xl p-6 border border-yellow-500/25">
               <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-lg border border-yellow-500/20">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-lg border border-yellow-500/25">
                   <UsersIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-white/40 text-xs font-medium mb-0.5">ผู้เข้าร่วมทั้งหมด</p>
+                  <p className="text-white/90 text-xs font-medium mb-0.5">ผู้เข้าร่วมทั้งหมด</p>
                   <p className="text-3xl font-bold text-white">{stats.totalUsers.toLocaleString()}</p>
                 </div>
               </div>
             </div>
 
-            <div className="glass-card rounded-2xl p-6 border border-yellow-500/5 md:col-span-2">
+            <div className="glass-card rounded-2xl p-6 border border-yellow-500/25 md:col-span-2">
               <div className="flex items-center gap-5">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-600 to-pink-800 flex items-center justify-center shadow-lg">
                   <HeartIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-white/40 text-xs font-medium mb-0.5">จำนวนบริจาค</p>
-                  <p className="text-3xl font-bold text-white">{stats.totalDonations.toLocaleString()} <span className="text-base text-white/50">ครั้ง</span></p>
+                  <p className="text-white/90 text-xs font-medium mb-0.5">จำนวนบริจาค</p>
+                  <p className="text-3xl font-bold text-white">{stats.totalDonations.toLocaleString()} <span className="text-base text-white/90">ครั้ง</span></p>
                   {stats.totalDonationAmount > 0 && (
                     <p className="text-pink-400 font-bold text-sm mt-0.5">รวม {stats.totalDonationAmount.toLocaleString()} บาท</p>
                   )}
@@ -127,16 +127,16 @@ export function Dashboard() {
             </div>
 
             {Object.keys(stats.prizeStats).length > 0 && (
-              <div className="md:col-span-2 glass-card rounded-2xl p-6 border border-yellow-500/5">
+              <div className="md:col-span-2 glass-card rounded-2xl p-6 border border-yellow-500/25">
                 <div className="flex items-center gap-3 mb-5">
                   <TrophyIcon className="w-5 h-5 text-yellow-500" />
                   <h3 className="text-white font-bold text-sm">รางวัลที่ออก</h3>
                 </div>
                 <div className="space-y-2">
                   {Object.entries(stats.prizeStats).map(([name, count]) => (
-                    <div key={name} className="flex justify-between items-center py-2.5 px-4 rounded-xl bg-white/[0.03] border border-yellow-500/5">
-                      <span className="text-white/70 text-sm font-medium">{name}</span>
-                      <span className="font-bold text-yellow-400 text-sm bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/15">
+                    <div key={name} className="flex justify-between items-center py-2.5 px-4 rounded-xl bg-black/30 border border-yellow-500/25">
+                      <span className="text-white/90 text-sm font-medium">{name}</span>
+                      <span className="font-bold text-yellow-400 text-sm bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/25">
                         {count.toLocaleString()}
                       </span>
                     </div>
@@ -146,8 +146,8 @@ export function Dashboard() {
             )}
           </div>
         ) : (
-          <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/10">
-            <p className="text-white/40 text-sm font-medium">ไม่สามารถโหลดข้อมูลได้</p>
+          <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/25">
+            <p className="text-white/90 text-sm font-medium">ไม่สามารถโหลดข้อมูลได้</p>
           </div>
         )}
       </div>

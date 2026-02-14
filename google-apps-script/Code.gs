@@ -708,10 +708,25 @@ function getEventSettings() {
 
   var data = sheet.getDataRange().getValues();
   var settings = { startDate: '', endDate: '', startTime: '08:00', endTime: '20:00' };
+  var tz = Session.getScriptTimeZone();
 
   for (var i = 1; i < data.length; i++) {
     var key = data[i][0] ? data[i][0].toString() : '';
-    var value = data[i][1] ? data[i][1].toString() : '';
+    var raw = data[i][1];
+    var value = '';
+
+    if (raw instanceof Date) {
+      if (key === 'startDate' || key === 'endDate') {
+        value = Utilities.formatDate(raw, tz, 'yyyy-MM-dd');
+      } else if (key === 'startTime' || key === 'endTime') {
+        value = Utilities.formatDate(raw, tz, 'HH:mm');
+      } else {
+        value = raw.toString();
+      }
+    } else {
+      value = raw ? raw.toString() : '';
+    }
+
     if (key === 'startDate') settings.startDate = value;
     else if (key === 'endDate') settings.endDate = value;
     else if (key === 'startTime') settings.startTime = value;
@@ -747,14 +762,16 @@ function saveEventSettings(data) {
     sheet.getRange(1, 1, rowsToKeep.length, 2).setValues(rowsToKeep);
   }
 
-  // Append new settings
+  // Append new settings (use setNumberFormat to prevent auto-parsing dates)
   var newRows = [
     ['startDate', data.startDate || ''],
     ['endDate', data.endDate || ''],
     ['startTime', data.startTime || '08:00'],
     ['endTime', data.endTime || '20:00']
   ];
-  sheet.getRange(rowsToKeep.length + 1, 1, newRows.length, 2).setValues(newRows);
+  var range = sheet.getRange(rowsToKeep.length + 1, 1, newRows.length, 2);
+  range.setNumberFormat('@'); // Force plain text format
+  range.setValues(newRows);
 
   removeCache([CACHE_KEY_EVENT_SETTINGS]);
   return { success: true };

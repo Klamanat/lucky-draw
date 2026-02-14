@@ -104,18 +104,26 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
 
   return (
     <div className="relative w-[320px] h-[320px] md:w-[400px] md:h-[400px]">
+      {/* Dark backdrop circle for contrast */}
+      <div
+        className="absolute -inset-20 rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, transparent 75%)',
+        }}
+      />
+
       {/* Outer glow */}
       <div
-        className="absolute -inset-16 rounded-full animate-glow-pulse"
+        className="absolute -inset-14 rounded-full animate-glow-pulse"
         style={{
-          background: 'radial-gradient(circle, rgba(255,215,0,0.2) 0%, rgba(220,20,60,0.1) 40%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(255,215,0,0.35) 0%, rgba(255,215,0,0.15) 35%, rgba(220,20,60,0.1) 55%, transparent 75%)',
         }}
       />
 
       {/* Outer ring - dark with lights */}
       <div className="absolute -inset-7 rounded-full" style={{
         background: 'linear-gradient(180deg, #3a0a0a 0%, #1a0505 100%)',
-        boxShadow: 'inset 0 2px 10px rgba(255,215,0,0.15), 0 8px 40px rgba(0,0,0,0.5)',
+        boxShadow: 'inset 0 2px 10px rgba(255,215,0,0.2), 0 8px 50px rgba(0,0,0,0.6), 0 0 80px rgba(255,215,0,0.15)',
       }}>
         {/* Light dots */}
         {Array.from({ length: 24 }).map((_, i) => {
@@ -151,7 +159,7 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
         className="absolute -inset-3 rounded-full"
         style={{
           background: 'linear-gradient(180deg, #ffd700 0%, #d4a017 30%, #b8860b 60%, #8b6914 100%)',
-          boxShadow: '0 2px 20px rgba(255,215,0,0.3)',
+          boxShadow: '0 2px 30px rgba(255,215,0,0.5), 0 0 60px rgba(255,215,0,0.2)',
         }}
       />
 
@@ -276,8 +284,8 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
       {/* Disabled overlay */}
       {disabled && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center">
-          <div className="glass-card px-6 py-3 rounded-xl border border-white/10">
-            <span className="text-white/60 font-bold text-sm">หมดสิทธิ์หมุน</span>
+          <div className="glass-card px-6 py-3 rounded-xl border border-white/20">
+            <span className="text-white/80 font-bold text-sm">หมดสิทธิ์หมุน</span>
           </div>
         </div>
       )}

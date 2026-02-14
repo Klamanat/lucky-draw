@@ -30,7 +30,7 @@ export function SpinLogs() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="glass-card rounded-2xl p-10 text-center border border-white/10">
+        <div className="glass-card rounded-2xl p-10 text-center border border-yellow-500/25">
           <LockIcon className="w-8 h-8 text-red-400 mb-4 mx-auto" />
           <p className="text-white font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
           <Link to="/" className="px-8 py-3 btn-premium rounded-xl inline-block font-bold">
@@ -53,12 +53,12 @@ export function SpinLogs() {
             <div className="divider-gold w-16 mt-2" />
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-yellow-400 text-xs font-medium bg-yellow-500/10 px-3 py-1.5 rounded-full border border-yellow-500/20">
+            <span className="text-yellow-400 text-xs font-medium bg-yellow-500/10 px-3 py-1.5 rounded-full border border-yellow-500/25">
               {history.length} รายการ
             </span>
             <Link
               to="/admin"
-              className="glass-card px-5 py-2.5 text-white/60 rounded-xl hover:bg-white/10 font-medium border border-white/10 transition-all text-sm"
+              className="glass-card px-5 py-2.5 text-white/90 rounded-xl hover:bg-white/10 font-medium border border-yellow-500/25 transition-all text-sm"
             >
               กลับ
             </Link>
@@ -66,40 +66,40 @@ export function SpinLogs() {
         </div>
 
         {loading ? (
-          <div className="glass-card rounded-2xl p-12 text-center border border-white/10">
+          <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/25">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-10 h-10 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
-              <p className="text-white/40 text-sm font-medium">กำลังโหลดข้อมูล...</p>
+              <div className="w-14 h-14 border-yellow-500/25 border-t-yellow-500 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
+              <p className="text-white text-sm font-medium">กำลังโหลดข้อมูล...</p>
             </div>
           </div>
         ) : (
-          <div className="glass-card rounded-2xl overflow-hidden border border-white/5">
+          <div className="glass-card rounded-2xl overflow-hidden border border-yellow-500/25">
             {/* Table Header */}
-            <div className="bg-white/[0.03] px-5 py-3.5 border-b border-white/5">
+            <div className="bg-black/30 px-5 py-3.5 border-b border-yellow-500/25">
               <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-2 text-white/40 text-xs font-medium tracking-wide">รหัสพนักงาน</div>
-                <div className="col-span-2 text-white/40 text-xs font-medium tracking-wide">ชื่อ</div>
-                <div className="col-span-3 text-white/40 text-xs font-medium tracking-wide">รางวัล</div>
-                <div className="col-span-2 text-white/40 text-xs font-medium tracking-wide">สถานะ</div>
-                <div className="col-span-3 text-white/40 text-xs font-medium tracking-wide">เวลา</div>
+                <div className="col-span-2 text-white/90 text-xs font-medium tracking-wide">รหัสพนักงาน</div>
+                <div className="col-span-2 text-white/90 text-xs font-medium tracking-wide">ชื่อ</div>
+                <div className="col-span-3 text-white/90 text-xs font-medium tracking-wide">รางวัล</div>
+                <div className="col-span-2 text-white/90 text-xs font-medium tracking-wide">สถานะ</div>
+                <div className="col-span-3 text-white/90 text-xs font-medium tracking-wide">เวลา</div>
               </div>
             </div>
 
             {/* Table Body */}
-            <div className="divide-y divide-white/[0.03]">
+            <div className="divide-y divide-white/10">
               {history.map((item) => (
                 <div
                   key={item.id}
-                  className="px-5 py-3.5 grid grid-cols-12 gap-4 items-center hover:bg-white/[0.02] transition-colors"
+                  className="px-5 py-3.5 grid grid-cols-12 gap-4 items-center hover:bg-black/15 transition-colors"
                 >
                   <div className="col-span-2">
-                    <span className="font-mono text-xs font-medium text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded border border-yellow-500/10">
+                    <span className="font-mono text-xs font-medium text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded border border-yellow-500/25">
                       {item.employee_id}
                     </span>
                   </div>
-                  <div className="col-span-2 text-white/70 text-sm font-medium">{item.user_name}</div>
+                  <div className="col-span-2 text-white/90 text-sm font-medium">{item.user_name}</div>
                   <div className="col-span-3">
-                    <span className="inline-flex items-center gap-1.5 text-white text-sm font-medium bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                    <span className="inline-flex items-center gap-1.5 text-white text-sm font-medium bg-black/30 px-2.5 py-1 rounded-lg border border-yellow-500/25">
                       <GiftIcon className="w-3 h-3 text-yellow-500" />
                       {item.prize_name}
                     </span>
@@ -120,7 +120,7 @@ export function SpinLogs() {
                       </span>
                     )}
                   </div>
-                  <div className="col-span-3 text-white/30 text-xs flex items-center gap-1.5">
+                  <div className="col-span-3 text-white/90 text-xs flex items-center gap-1.5">
                     <ClockIcon className="w-3 h-3" />
                     {formatDate(item.spun_at)}
                   </div>
@@ -130,7 +130,7 @@ export function SpinLogs() {
               {history.length === 0 && (
                 <div className="px-6 py-16 text-center">
                   <InboxIcon className="w-10 h-10 text-white/10 mb-3 mx-auto" />
-                  <p className="text-white/40 font-medium text-sm">ยังไม่มีประวัติการหมุน</p>
+                  <p className="text-white/90 font-medium text-sm">ยังไม่มีประวัติการหมุน</p>
                 </div>
               )}
             </div>

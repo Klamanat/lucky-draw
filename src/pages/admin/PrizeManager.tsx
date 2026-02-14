@@ -66,7 +66,7 @@ export function PrizeManager() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="glass-card rounded-2xl p-10 text-center border border-white/10">
+        <div className="glass-card rounded-2xl p-10 text-center border border-yellow-500/25">
           <LockIcon className="w-8 h-8 text-red-400 mb-4 mx-auto" />
           <p className="text-white font-bold text-lg mb-6">ไม่มีสิทธิ์เข้าถึง</p>
           <Link to="/" className="px-8 py-3 btn-premium rounded-xl inline-block font-bold">
@@ -97,7 +97,7 @@ export function PrizeManager() {
             </button>
             <Link
               to="/admin"
-              className="glass-card px-5 py-2.5 text-white/60 rounded-xl hover:bg-white/10 font-medium border border-white/10 transition-all text-sm"
+              className="glass-card px-5 py-2.5 text-white/90 rounded-xl hover:bg-white/10 font-medium border border-yellow-500/25 transition-all text-sm"
             >
               กลับ
             </Link>
@@ -106,16 +106,16 @@ export function PrizeManager() {
 
         {/* Prize List */}
         {loading ? (
-          <div className="glass-card rounded-2xl p-12 text-center border border-white/10">
+          <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/25">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-10 h-10 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
-              <p className="text-white/40 text-sm font-medium">กำลังโหลดข้อมูล...</p>
+              <div className="w-14 h-14 border-yellow-500/25 border-t-yellow-500 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
+              <p className="text-white text-sm font-medium">กำลังโหลดข้อมูล...</p>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
             {prizes.map((prize, index) => (
-              <div key={prize.id} className="glass-card rounded-xl p-5 flex items-center gap-5 border border-white/5 hover:border-yellow-500/20 transition-all group">
+              <div key={prize.id} className="glass-card rounded-xl p-5 flex items-center gap-5 border border-yellow-500/25 hover:border-yellow-500/25 transition-all group">
                 {/* Color badge */}
                 <div
                   className="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center"
@@ -135,11 +135,11 @@ export function PrizeManager() {
                     )}
                   </div>
                   <div className="flex items-center gap-4 mt-1.5 text-xs">
-                    <span className="flex items-center gap-1 text-white/40">
-                      <ChartIcon className="w-3 h-3" /> <span className="font-medium text-white/60">{prize.probability}%</span>
+                    <span className="flex items-center gap-1 text-white/90">
+                      <ChartIcon className="w-3 h-3" /> <span className="font-medium text-white/90">{prize.probability}%</span>
                     </span>
-                    <span className="flex items-center gap-1 text-white/40">
-                      <PackageIcon className="w-3 h-3" /> <span className="font-medium text-white/60">{prize.quantity === -1 ? 'ไม่จำกัด' : prize.quantity}</span>
+                    <span className="flex items-center gap-1 text-white/90">
+                      <PackageIcon className="w-3 h-3" /> <span className="font-medium text-white/90">{prize.quantity === -1 ? 'ไม่จำกัด' : prize.quantity}</span>
                     </span>
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export function PrizeManager() {
                 <div className="flex gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => setEditingPrize(prize)}
-                    className="p-2.5 bg-white/5 text-white/60 rounded-lg hover:bg-white/10 transition-colors border border-white/5"
+                    className="p-2.5 bg-black/30 text-white/90 rounded-lg hover:bg-white/10 transition-colors border border-yellow-500/25"
                   >
                     <EditIcon className="w-4 h-4" />
                   </button>
@@ -163,10 +163,10 @@ export function PrizeManager() {
             ))}
 
             {prizes.length === 0 && (
-              <div className="glass-card rounded-2xl p-12 text-center border border-white/10">
+              <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/25">
                 <GiftIcon className="w-10 h-10 text-yellow-500 mb-4 mx-auto" />
                 <p className="text-white font-bold">ยังไม่มีรางวัล</p>
-                <p className="text-white/40 text-sm mt-1">กดปุ่ม "เพิ่มรางวัล" เพื่อเริ่มต้น</p>
+                <p className="text-white/90 text-sm mt-1">กดปุ่ม "เพิ่มรางวัล" เพื่อเริ่มต้น</p>
               </div>
             )}
           </div>
@@ -175,7 +175,7 @@ export function PrizeManager() {
         {/* Edit Modal */}
         {editingPrize && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <div className="glass-card rounded-2xl p-8 w-full max-w-lg border border-white/10 overflow-hidden">
+            <div className="glass-card rounded-2xl p-8 w-full max-w-lg border border-yellow-500/25 overflow-hidden">
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-pink-500 flex items-center justify-center shadow-lg shadow-red-500/20">
@@ -185,47 +185,47 @@ export function PrizeManager() {
                   <h2 className="text-lg font-bold text-white">
                     {editingPrize.id ? 'แก้ไขรางวัล' : 'เพิ่มรางวัลใหม่'}
                   </h2>
-                  <p className="text-white/40 text-xs">กรอกรายละเอียดรางวัล</p>
+                  <p className="text-white/90 text-xs">กรอกรายละเอียดรางวัล</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">ชื่อรางวัล</label>
+                  <label className="block text-sm font-medium text-white/90 mb-1.5">ชื่อรางวัล</label>
                   <input
                     type="text"
                     value={editingPrize.name || ''}
                     onChange={(e) => setEditingPrize({ ...editingPrize, name: e.target.value })}
                     placeholder="เช่น อั่งเปา 888"
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
+                    className="w-full px-4 py-3 rounded-xl bg-black/30 border border-yellow-500/25 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">คำอธิบาย</label>
+                  <label className="block text-sm font-medium text-white/90 mb-1.5">คำอธิบาย</label>
                   <input
                     type="text"
                     value={editingPrize.description || ''}
                     onChange={(e) => setEditingPrize({ ...editingPrize, description: e.target.value })}
                     placeholder="รายละเอียดเพิ่มเติม"
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
+                    className="w-full px-4 py-3 rounded-xl bg-black/30 border border-yellow-500/25 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">URL รูปภาพ</label>
+                  <label className="block text-sm font-medium text-white/90 mb-1.5">URL รูปภาพ</label>
                   <input
                     type="url"
                     value={editingPrize.image_url || ''}
                     onChange={(e) => setEditingPrize({ ...editingPrize, image_url: e.target.value })}
                     placeholder="https://..."
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
+                    className="w-full px-4 py-3 rounded-xl bg-black/30 border border-yellow-500/25 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-white/60 mb-1.5">ความน่าจะเป็น (%)</label>
+                    <label className="block text-sm font-medium text-white/90 mb-1.5">ความน่าจะเป็น (%)</label>
                     <input
                       type="number"
                       min="0"
@@ -233,25 +233,25 @@ export function PrizeManager() {
                       step="0.1"
                       value={editingPrize.probability || 0}
                       onChange={(e) => setEditingPrize({ ...editingPrize, probability: parseFloat(e.target.value) })}
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
+                      className="w-full px-4 py-3 rounded-xl bg-black/30 border border-yellow-500/25 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-white/60 mb-1.5">จำนวน</label>
+                    <label className="block text-sm font-medium text-white/90 mb-1.5">จำนวน</label>
                     <input
                       type="number"
                       min="-1"
                       value={editingPrize.quantity ?? -1}
                       onChange={(e) => setEditingPrize({ ...editingPrize, quantity: parseInt(e.target.value) })}
                       placeholder="-1 = ไม่จำกัด"
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
+                      className="w-full px-4 py-3 rounded-xl bg-black/30 border border-yellow-500/25 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-2.5">สีช่องบนวงล้อ</label>
+                  <label className="block text-sm font-medium text-white/90 mb-2.5">สีช่องบนวงล้อ</label>
                   <div className="flex gap-2.5">
                     {DEFAULT_COLORS.map((color) => (
                       <button
@@ -268,11 +268,11 @@ export function PrizeManager() {
                   <label className="flex items-center gap-3 cursor-pointer">
                     <div
                       onClick={() => setEditingPrize({ ...editingPrize, is_donatable: !editingPrize.is_donatable })}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${editingPrize.is_donatable ? 'bg-pink-500' : 'bg-white/10'}`}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${editingPrize.is_donatable ? 'bg-pink-500' : 'bg-white/15'}`}
                     >
                       <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${editingPrize.is_donatable ? 'translate-x-5' : ''}`} />
                     </div>
-                    <span className="text-sm font-medium text-white/60 flex items-center gap-1.5">
+                    <span className="text-sm font-medium text-white/90 flex items-center gap-1.5">
                       <HeartIcon className="w-4 h-4 text-pink-400" /> อนุญาตบริจาค
                     </span>
                   </label>
@@ -287,7 +287,7 @@ export function PrizeManager() {
                 >
                   {saving ? (
                     <span className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-yellow-500/25 border-t-white rounded-full animate-spin" />
                       กำลังบันทึก...
                     </span>
                   ) : (
@@ -296,7 +296,7 @@ export function PrizeManager() {
                 </button>
                 <button
                   onClick={() => setEditingPrize(null)}
-                  className="flex-1 py-3.5 bg-white/5 text-white/60 rounded-xl hover:bg-white/10 font-medium transition-colors border border-white/10"
+                  className="flex-1 py-3.5 bg-black/30 text-white/90 rounded-xl hover:bg-white/10 font-medium transition-colors border border-yellow-500/25"
                 >
                   ยกเลิก
                 </button>

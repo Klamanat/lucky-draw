@@ -39,23 +39,53 @@ export function Home() {
     // Validate event time window (only if dates are configured)
     if (eventSettings && (eventSettings.startDate || eventSettings.endDate)) {
       const now = new Date();
-      const today = now.toISOString().slice(0, 10);
-      const currentTime = now.toTimeString().slice(0, 5);
+      // Use local date (not UTC) to avoid timezone issues
+      const pad2 = (n: number) => n.toString().padStart(2, '0');
+      const today = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+      const currentTime = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 
-      if (eventSettings.startDate && today < eventSettings.startDate) {
+      // Normalize: handle Date objects or various string formats from backend
+      const normalizeDate = (val: string): string => {
+        if (!val) return '';
+        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+          return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+        }
+        return '';
+      };
+
+      const normalizeTime = (val: string): string => {
+        if (!val) return '';
+        if (/^\d{2}:\d{2}$/.test(val)) return val;
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+          return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+        }
+        return '';
+      };
+
+      const startDate = normalizeDate(eventSettings.startDate);
+      const endDate = normalizeDate(eventSettings.endDate);
+      const startTime = normalizeTime(eventSettings.startTime);
+      const endTime = normalizeTime(eventSettings.endTime);
+
+      if (startDate && today < startDate) {
         alert('กิจกรรมยังไม่เริ่ม');
         return;
       }
-      if (eventSettings.endDate && today > eventSettings.endDate) {
+      if (endDate && today > endDate) {
         alert('กิจกรรมสิ้นสุดแล้ว');
         return;
       }
-      if (eventSettings.startTime && currentTime < eventSettings.startTime) {
-        alert(`ยังไม่ถึงเวลากิจกรรม (เริ่ม ${eventSettings.startTime} น.)`);
+      // Only check time if today is within the date range (or dates aren't set)
+      const withinDateRange = (!startDate || today >= startDate) && (!endDate || today <= endDate);
+      if (withinDateRange && startTime && currentTime < startTime) {
+        alert(`ยังไม่ถึงเวลากิจกรรม (เริ่ม ${startTime} น.)`);
         return;
       }
-      if (eventSettings.endTime && currentTime > eventSettings.endTime) {
-        alert(`หมดเวลากิจกรรมแล้ว (สิ้นสุด ${eventSettings.endTime} น.)`);
+      if (withinDateRange && endTime && currentTime > endTime) {
+        alert(`หมดเวลากิจกรรมแล้ว (สิ้นสุด ${endTime} น.)`);
         return;
       }
     }
@@ -106,9 +136,9 @@ export function Home() {
   if (authLoading || prizesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-5">
-          <div className="w-12 h-12 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
-          <p className="text-white/60 text-sm font-medium tracking-wide">กำลังโหลด...</p>
+        <div className="glass-card rounded-2xl px-12 py-10 flex flex-col items-center gap-5 border border-yellow-500/20">
+          <div className="w-14 h-14 border-3 border-yellow-500/30 border-t-yellow-400 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
+          <p className="text-white font-medium tracking-wide">กำลังโหลด...</p>
         </div>
       </div>
     );
@@ -131,7 +161,7 @@ export function Home() {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
             <span className="gold-shimmer">กิจกรรมหมุนวงล้อ</span>
           </h1>
-          <p className="text-white/40 text-base font-medium">ลุ้นรับอั่งเปาและของรางวัลมากมาย</p>
+          <p className="text-white/90 text-base font-medium">ลุ้นรับอั่งเปาและของรางวัลมากมาย</p>
         </div>
 
         <EmployeeForm
@@ -144,16 +174,16 @@ export function Home() {
           <div className="mt-8 text-center space-y-3 relative z-10">
             {getAllowedEmployees().length > 0 && (
               <div className="glass-card-dark rounded-xl px-5 py-3 inline-block">
-                <p className="text-white/40 text-xs mb-1.5 font-medium">รหัสพนักงานที่มีสิทธิ์</p>
+                <p className="text-white/70 text-xs mb-1.5 font-medium">รหัสพนักงานที่มีสิทธิ์</p>
                 <p className="text-white/70 text-sm font-mono tracking-wider">
                   {getAllowedEmployees().slice(0, 5).join(', ')}
                   {getAllowedEmployees().length > 5 && (
-                    <span className="text-white/30"> (+{getAllowedEmployees().length - 5})</span>
+                    <span className="text-white/60"> (+{getAllowedEmployees().length - 5})</span>
                   )}
                 </p>
               </div>
             )}
-            <p className="text-white/20 text-xs tracking-wide">
+            <p className="text-white/50 text-xs tracking-wide">
               Admin: กรอกรหัส admin1234
             </p>
           </div>
@@ -177,16 +207,16 @@ export function Home() {
 
       {/* Header */}
       <div className="w-full max-w-lg flex justify-between items-center mb-8 relative z-10">
-        <div className="glass-card rounded-xl px-5 py-3 border border-yellow-500/10">
-          <p className="text-yellow-500/50 text-xs font-medium mb-0.5">ผู้เข้าร่วม</p>
+        <div className="glass-card rounded-xl px-5 py-3 border border-yellow-500/25">
+          <p className="text-yellow-400 text-xs font-medium mb-0.5">ผู้เข้าร่วม</p>
           <p className="text-white font-bold text-base">{user?.name}</p>
-          <p className="text-yellow-500/40 text-xs font-mono">{user?.employee_id}</p>
+          <p className="text-yellow-400/80 text-xs font-mono">{user?.employee_id}</p>
         </div>
 
         <div className="flex gap-2">
           <Link
             to="/history"
-            className="glass-card px-4 py-2.5 text-white/70 rounded-xl hover:bg-white/10 transition-all text-sm font-medium flex items-center gap-2"
+            className="glass-card px-4 py-2.5 text-white/90 rounded-xl hover:bg-white/10 transition-all text-sm font-medium flex items-center gap-2"
           >
             <ScrollIcon className="w-4 h-4" />
             ประวัติ
@@ -202,7 +232,7 @@ export function Home() {
           )}
           <button
             onClick={logout}
-            className="glass-card px-4 py-2.5 text-white/40 rounded-xl hover:bg-white/10 hover:text-white/60 transition-all text-sm font-medium flex items-center gap-2"
+            className="glass-card px-4 py-2.5 text-white/90 rounded-xl hover:bg-white/10 transition-all text-sm font-medium flex items-center gap-2"
           >
             <LogOutIcon className="w-4 h-4" />
           </button>
@@ -238,12 +268,12 @@ export function Home() {
           </div>
         </>
       ) : (
-        <div className="glass-card rounded-2xl p-10 text-center border border-yellow-500/10">
-          <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-red-500/10 flex items-center justify-center">
+        <div className="glass-card rounded-2xl p-10 text-center border border-yellow-500/25">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-red-500/20 flex items-center justify-center">
             <span className="text-2xl">🎁</span>
           </div>
           <p className="text-white font-bold text-lg">ยังไม่มีรางวัลในระบบ</p>
-          <p className="text-white/40 text-sm mt-2">กรุณาติดต่อผู้ดูแลระบบ</p>
+          <p className="text-white/80 text-sm mt-2">กรุณาติดต่อผู้ดูแลระบบ</p>
         </div>
       )}
 

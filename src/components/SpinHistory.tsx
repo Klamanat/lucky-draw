@@ -31,10 +31,10 @@ export function SpinHistory({ userId }: SpinHistoryProps) {
 
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/10">
+      <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/25">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
-          <p className="text-white/40 text-sm font-medium">กำลังโหลด...</p>
+          <div className="w-14 h-14 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
+          <p className="text-white text-sm font-medium">กำลังโหลด...</p>
         </div>
       </div>
     );
@@ -42,23 +42,23 @@ export function SpinHistory({ userId }: SpinHistoryProps) {
 
   if (history.length === 0) {
     return (
-      <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/10">
+      <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/25">
         <span className="text-4xl block mb-4">🎡</span>
         <p className="text-white font-bold text-lg">ยังไม่มีประวัติการหมุน</p>
-        <p className="text-white/40 text-sm mt-2">ลองหมุนวงล้อดูสิ!</p>
+        <p className="text-white/80 text-sm mt-2">ลองหมุนวงล้อดูสิ!</p>
       </div>
     );
   }
 
   return (
-    <div className="glass-card rounded-2xl p-6 border border-yellow-500/10">
+    <div className="glass-card rounded-2xl p-6 border border-yellow-500/25">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg shadow-red-500/20 border border-yellow-500/20">
           <span className="text-lg">🧧</span>
         </div>
         <div>
           <h3 className="text-base font-bold text-white">รายการรางวัลที่ได้รับ</h3>
-          <p className="text-white/30 text-xs">{history.length} รายการ</p>
+          <p className="text-white/80 text-xs">{history.length} รายการ</p>
         </div>
       </div>
 
@@ -66,7 +66,7 @@ export function SpinHistory({ userId }: SpinHistoryProps) {
         {history.map((item, index) => (
           <div
             key={item.id}
-            className="bg-white/[0.03] rounded-xl p-4 flex items-center gap-4 border border-yellow-500/5 hover:border-yellow-500/15 transition-colors"
+            className="bg-black/30 rounded-xl p-4 flex items-center gap-4 border border-yellow-500/20 hover:border-yellow-500/30 transition-colors"
           >
             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-yellow-600 to-yellow-700 flex items-center justify-center">
               <span className="text-white font-bold text-sm">{index + 1}</span>
@@ -81,7 +81,7 @@ export function SpinHistory({ userId }: SpinHistoryProps) {
                   </span>
                 )}
               </div>
-              <p className="text-white/30 text-xs mt-1 flex items-center gap-1.5">
+              <p className="text-white/80 text-xs mt-1 flex items-center gap-1.5">
                 <ClockIcon className="w-3 h-3" />
                 {formatDate(item.spun_at)}
               </p>

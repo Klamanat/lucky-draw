@@ -8,7 +8,7 @@ export function History() {
   if (!isLoggedIn || !user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="glass-card rounded-2xl p-10 text-center border border-white/10">
+        <div className="glass-card rounded-2xl p-10 text-center border border-white/20">
           <span className="text-4xl mb-4 block">🔐</span>
           <p className="text-white font-bold text-lg mb-6">กรุณาลงทะเบียนก่อน</p>
           <Link
@@ -35,7 +35,7 @@ export function History() {
           </div>
           <Link
             to="/"
-            className="glass-card px-5 py-2.5 text-white/60 rounded-xl hover:bg-white/10 transition-all text-sm font-medium border border-white/10"
+            className="glass-card px-5 py-2.5 text-white/90 rounded-xl hover:bg-white/10 transition-all text-sm font-medium border border-yellow-500/25"
           >
             กลับ
           </Link>
