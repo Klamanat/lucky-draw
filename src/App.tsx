@@ -10,10 +10,17 @@ import { EventSettings } from './pages/admin/EventSettings';
 function App() {
   return (
     <BrowserRouter>
+      {/* Modern overlays on bg image */}
+      <div className="bg-overlay" />
+      <div className="bg-grid" />
+      <div className="bg-glow-1" />
+      <div className="bg-glow-2" />
+
       <div className="app-container">
         {/* Top accent line */}
         <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
-          <div className="h-0.5 bg-gradient-to-r from-transparent via-yellow-500 to-transparent opacity-60" />
+          <div className="h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
+          <div className="h-px mt-px bg-gradient-to-r from-transparent via-yellow-500/25 to-transparent" />
         </div>
 
         <Routes>
