@@ -86,14 +86,16 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
 
   const isActive = phase !== 'idle';
 
-  // Red-gold color pairs: [bg, text]
+  // White-gold-red color pairs: [bg, text]
   const colorPairs = [
-    ['#c41e3a', '#ffd700'],
-    ['#3a0a0a', '#ffd700'],
-    ['#8b0000', '#fff8dc'],
-    ['#2a0505', '#ffc107'],
+    ['#ffffff', '#8b0000'],
+    ['#c41e3a', '#ffffff'],
+    ['#ffd700', '#5c0000'],
+    ['#f5f0e8', '#8b0000'],
     ['#a01830', '#ffd700'],
-    ['#1f0303', '#f0c040'],
+    ['#fff5d4', '#a01830'],
+    ['#8b0000', '#ffd700'],
+    ['#fffaf0', '#c41e3a'],
   ];
 
   // Build transition style based on phase
@@ -114,9 +116,9 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
 
       {/* Outer glow */}
       <div
-        className="absolute -inset-14 rounded-full animate-glow-pulse"
+        className="absolute -inset-16 rounded-full animate-glow-pulse"
         style={{
-          background: 'radial-gradient(circle, rgba(255,215,0,0.35) 0%, rgba(255,215,0,0.15) 35%, rgba(220,20,60,0.1) 55%, transparent 75%)',
+          background: 'radial-gradient(circle, rgba(255,215,0,0.4) 0%, rgba(255,215,0,0.2) 30%, rgba(220,20,60,0.12) 50%, transparent 70%)',
         }}
       />
 
@@ -158,8 +160,8 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
       <div
         className="absolute -inset-3 rounded-full"
         style={{
-          background: 'linear-gradient(180deg, #ffd700 0%, #d4a017 30%, #b8860b 60%, #8b6914 100%)',
-          boxShadow: '0 2px 30px rgba(255,215,0,0.5), 0 0 60px rgba(255,215,0,0.2)',
+          background: 'linear-gradient(180deg, #ffe44d 0%, #ffd700 25%, #d4a017 60%, #b8860b 100%)',
+          boxShadow: '0 2px 40px rgba(255,215,0,0.6), 0 0 80px rgba(255,215,0,0.25)',
         }}
       />
 
@@ -206,13 +208,18 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
             {colorPairs.map((pair, i) => (
               <linearGradient key={`grad-${i}`} id={`seg-${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor={pair[0]} />
-                <stop offset="100%" stopColor={pair[0]} stopOpacity="0.8" />
+                <stop offset="100%" stopColor={pair[0]} stopOpacity="0.9" />
               </linearGradient>
             ))}
             <radialGradient id="center-grad" cx="50%" cy="30%">
               <stop offset="0%" stopColor="#ffd700" />
-              <stop offset="50%" stopColor="#d4a017" />
+              <stop offset="40%" stopColor="#d4a017" />
               <stop offset="100%" stopColor="#b8860b" />
+            </radialGradient>
+            {/* Inner shadow for depth */}
+            <radialGradient id="wheel-shadow" cx="50%" cy="50%">
+              <stop offset="70%" stopColor="transparent" />
+              <stop offset="100%" stopColor="rgba(0,0,0,0.15)" />
             </radialGradient>
           </defs>
 
@@ -244,18 +251,19 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
                 <path
                   d={pathD}
                   fill={`url(#seg-${colorIdx})`}
-                  stroke="rgba(255,215,0,0.3)"
-                  strokeWidth="0.3"
+                  stroke="rgba(184,134,11,0.5)"
+                  strokeWidth="0.4"
                 />
                 <text
                   x={textX}
                   y={textY}
                   fill={textColor}
-                  fontSize="3.5"
-                  fontWeight="bold"
+                  fontSize="3.8"
+                  fontWeight="800"
                   textAnchor="middle"
                   dominantBaseline="middle"
                   transform={`rotate(${midAngle + 90}, ${textX}, ${textY})`}
+                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}
                 >
                   {truncateText(prize.name, 6)}
                 </text>
@@ -263,9 +271,12 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
             );
           })}
 
+          {/* Inner shadow overlay */}
+          <circle cx="50" cy="50" r="48" fill="url(#wheel-shadow)" />
+
           {/* Center decoration */}
-          <circle cx="50" cy="50" r="14" fill="#3a0a0a" stroke="rgba(255,215,0,0.4)" strokeWidth="0.5" />
-          <circle cx="50" cy="50" r="11" fill="url(#center-grad)" />
+          <circle cx="50" cy="50" r="15" fill="#3a0a0a" stroke="rgba(255,215,0,0.5)" strokeWidth="0.8" />
+          <circle cx="50" cy="50" r="12" fill="url(#center-grad)" stroke="rgba(255,215,0,0.3)" strokeWidth="0.3" />
           <text
             x="50"
             y="51"

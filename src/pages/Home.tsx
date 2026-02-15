@@ -203,17 +203,25 @@ export function Home() {
       )}
 
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between w-full max-w-lg mb-8">
-        <div className="px-5 py-3 border glass-card rounded-xl border-yellow-500/25">
-          <p className="text-yellow-400 text-xs font-medium mb-0.5">ผู้เข้าร่วม</p>
-          <p className="text-base font-bold text-white">{user?.name}</p>
-          <p className="font-mono text-xs text-yellow-400/80">{user?.employee_id}</p>
+      <div className="relative z-10 flex items-center justify-between w-full max-w-lg mb-6">
+        <div className="px-5 py-3 rounded-xl overflow-hidden relative" style={{
+          background: 'linear-gradient(135deg, rgba(139,26,43,0.6) 0%, rgba(92,10,21,0.5) 100%)',
+          border: '1px solid rgba(255, 215, 0, 0.15)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        }}>
+          <p className="text-yellow-400 text-xs font-extrabold mb-0.5">ผู้เข้าร่วม</p>
+          <p className="text-lg font-extrabold text-white">{user?.name}</p>
+          <p className="font-mono text-xs font-bold text-yellow-400/70">{user?.employee_id}</p>
         </div>
 
         <div className="flex gap-2">
           <Link
             to="/history"
-            className="glass-card px-4 py-2.5 text-white/90 rounded-xl hover:bg-white/10 transition-all text-sm font-medium flex items-center gap-2"
+            className="px-4 py-2.5 text-white font-bold rounded-xl hover:bg-white/10 transition-all text-sm flex items-center gap-2"
+            style={{
+              background: 'rgba(139,26,43,0.4)',
+              border: '1px solid rgba(255, 215, 0, 0.12)',
+            }}
           >
             <ScrollIcon className="w-4 h-4" />
             ประวัติ
@@ -221,7 +229,7 @@ export function Home() {
           {user?.role === 'admin' && (
             <Link
               to="/admin"
-              className="btn-gold px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2"
+              className="btn-gold px-4 py-2.5 rounded-xl text-sm font-extrabold flex items-center gap-2"
             >
               <SettingsIcon className="w-4 h-4" />
               จัดการ
@@ -229,7 +237,11 @@ export function Home() {
           )}
           <button
             onClick={logout}
-            className="glass-card px-4 py-2.5 text-white/90 rounded-xl hover:bg-white/10 transition-all text-sm font-medium flex items-center gap-2"
+            className="px-4 py-2.5 text-white/80 rounded-xl hover:bg-white/10 transition-all text-sm font-bold flex items-center gap-2"
+            style={{
+              background: 'rgba(139,26,43,0.4)',
+              border: '1px solid rgba(255, 215, 0, 0.12)',
+            }}
           >
             <LogOutIcon className="w-4 h-4" />
           </button>
@@ -237,11 +249,11 @@ export function Home() {
       </div>
 
       {/* Title */}
-      <div className="relative z-10 mb-10 text-center">
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+      <div className="relative z-10 mb-8 text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
           <span className="gold-shimmer">หมุนวงล้อรับโชค</span>
         </h1>
-        <div className="w-24 mx-auto mt-3 divider-gold" />
+        <div className="w-28 mx-auto mt-3 divider-gold" />
       </div>
 
       {/* Wheel */}
