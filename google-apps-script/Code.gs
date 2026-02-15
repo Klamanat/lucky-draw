@@ -106,6 +106,9 @@ function handleRequest(e) {
       case 'getAllHistory':
         result = getAllHistory();
         break;
+      case 'getParticipants':
+        result = getParticipants();
+        break;
       case 'claimPrize':
         result = claimPrize(JSON.parse(e.postData.contents));
         break;
@@ -234,6 +237,31 @@ function loginAdmin(password) {
       created_at: new Date().toISOString()
     }
   };
+}
+
+// ===== PARTICIPANTS FUNCTIONS =====
+
+function getParticipants() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('users');
+  var data = sheet.getDataRange().getValues();
+  var users = [];
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    if (row[0] && row[5] !== 'admin') {
+      users.push({
+        id: row[0].toString(),
+        employee_id: row[1] ? row[1].toString() : '',
+        name: row[2] ? row[2].toString() : '',
+        spins_remaining: parseInt(row[4]) || 0,
+        role: row[5] || 'user',
+        created_at: row[6] ? new Date(row[6]).toISOString() : ''
+      });
+    }
+  }
+
+  return { success: true, users: users };
 }
 
 // ===== ALLOWED EMPLOYEES FUNCTIONS =====
@@ -625,7 +653,9 @@ function markTransferred(historyId) {
 
   for (var i = 1; i < data.length; i++) {
     if (data[i][0].toString() === historyId.toString()) {
-      sheet.getRange(i + 1, 8).setValue('transferred');
+      var currentStatus = data[i][7] || 'claimed';
+      var newStatus = (currentStatus === 'donated') ? 'donated_transferred' : 'transferred';
+      sheet.getRange(i + 1, 8).setValue(newStatus);
       var userId = data[i][1].toString();
       removeCache([CACHE_KEY_ALL_HISTORY, CACHE_KEY_STATS, historyKey(userId)]);
       return { success: true };

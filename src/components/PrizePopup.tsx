@@ -5,7 +5,7 @@ import { HeartIcon } from './icons';
 interface PrizePopupProps {
   prize: Prize;
   onClaim: (paymentInfo?: PaymentInfo) => void;
-  onDonate: (amount: number) => void;
+  onDonate: (amount: number, paymentInfo?: PaymentInfo) => void;
   donating?: boolean;
 }
 
@@ -23,6 +23,7 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
   const [showDonateForm, setShowDonateForm] = useState(false);
   const [donateAmount, setDonateAmount] = useState('');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentMode, setPaymentMode] = useState<'claim' | 'donate'>('claim');
   const [paymentMethod, setPaymentMethod] = useState<'bank' | 'promptpay'>('promptpay');
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -148,7 +149,11 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
 
             {showPaymentForm ? (
               <div className="space-y-4 text-left">
-                <p className="text-yellow-300/90 text-sm font-extrabold text-center mb-3">เลือกช่องทางรับเงิน</p>
+                <p className="text-yellow-300/90 text-sm font-extrabold text-center mb-3">
+                  {paymentMode === 'donate'
+                    ? 'กรอกข้อมูลรับเงินส่วนที่เหลือ'
+                    : 'เลือกช่องทางรับเงิน'}
+                </p>
 
                 {/* Payment method tabs */}
                 <div className="flex gap-2 mb-4">
@@ -275,7 +280,12 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                       const info: PaymentInfo = paymentMethod === 'promptpay'
                         ? { method: 'promptpay', promptpayNumber }
                         : { method: 'bank', bankName, accountNumber };
-                      onClaim(info);
+                      if (paymentMode === 'donate') {
+                        const amount = parseFloat(donateAmount);
+                        onDonate(amount, info);
+                      } else {
+                        onClaim(info);
+                      }
                     }}
                     disabled={claiming || (paymentMethod === 'promptpay' ? !promptpayNumber : (!bankName || !accountNumber))}
                     className="flex-1 py-3.5 font-extrabold text-base tracking-wide rounded-xl active:scale-[0.98] transition-all disabled:opacity-40"
@@ -287,7 +297,7 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                     }}
                   >
                     <span className="flex items-center justify-center gap-2">
-                      {claiming ? 'กำลังดำเนินการ...' : 'ยืนยันรับเงิน'} <span className="text-lg">💰</span>
+                      {claiming ? 'กำลังดำเนินการ...' : (paymentMode === 'donate' ? 'บริจาคและรับเงินที่เหลือ' : 'ยืนยันรับเงิน')} <span className="text-lg">💰</span>
                     </span>
                   </button>
                   <button
@@ -334,13 +344,22 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                   <button
                     onClick={() => {
                       const amount = parseFloat(donateAmount);
-                      if (amount > 0) onDonate(amount);
+                      if (amount > 0) {
+                        if (prize.is_money) {
+                          // เงินรางวัล → ต้องกรอก payment info เพื่อรับส่วนที่เหลือ
+                          setPaymentMode('donate');
+                          setShowDonateForm(false);
+                          setShowPaymentForm(true);
+                        } else {
+                          onDonate(amount);
+                        }
+                      }
                     }}
                     disabled={donating || !donateAmount || parseFloat(donateAmount) <= 0}
                     className="flex-1 py-3.5 bg-gradient-to-r from-pink-600 to-pink-500 text-white rounded-xl font-extrabold shadow-lg shadow-pink-500/20 transition-all disabled:opacity-40 text-sm"
                   >
                     <span className="flex items-center justify-center gap-2">
-                      {donating ? 'กำลังบริจาค...' : 'ยืนยันบริจาค'} <HeartIcon className="w-4 h-4" />
+                      {donating ? 'กำลังบริจาค...' : (prize.is_money ? 'ถัดไป' : 'ยืนยันบริจาค')} <HeartIcon className="w-4 h-4" />
                     </span>
                   </button>
                   <button
@@ -362,6 +381,7 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                 <button
                   onClick={() => {
                     if (prize.is_money) {
+                      setPaymentMode('claim');
                       setShowPaymentForm(true);
                     } else {
                       onClaim();

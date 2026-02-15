@@ -33,13 +33,16 @@ const steps = [
 ];
 
 export function InfoPopup({ onClose, eventSettings }: InfoPopupProps) {
-  const hasEventTime = eventSettings && (eventSettings.startDate || eventSettings.endDate);
+  const hasStartDate = eventSettings?.startDate;
+  const hasEndDate = eventSettings?.endDate;
+  const hasEventDate = hasStartDate || hasEndDate;
+  const hasEventTime = eventSettings && (eventSettings.startTime || eventSettings.endTime);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
 
       {/* ===== Popup ===== */}
-      <div className="relative w-[32vw] min-w-[360px] max-w-[460px] animate-bounce-in">
+      <div className="relative w-full max-w-[460px] sm:w-[32vw] sm:min-w-[360px] mx-4 sm:mx-0 animate-bounce-in">
 
         {/* ===== Container ===== */}
         <div
@@ -122,7 +125,7 @@ export function InfoPopup({ onClose, eventSettings }: InfoPopupProps) {
             </div>
 
             {/* Event time */}
-            {hasEventTime && (
+            {(hasEventDate || hasEventTime) && (
               <div className="p-3.5 mb-4 rounded-xl text-left" style={{
                 background: 'rgba(255, 180, 50, 0.06)',
                 border: '1px solid rgba(255, 215, 0, 0.1)',
@@ -133,12 +136,23 @@ export function InfoPopup({ onClose, eventSettings }: InfoPopupProps) {
                   </div>
                   <p className="text-sm font-extrabold text-yellow-400/90">ช่วงเวลากิจกรรม</p>
                 </div>
-                <p className="ml-8 text-sm font-extrabold text-white/90">
-                  17 กุมภาพันธ์ 2569 วันเดียวเท่านั้น
-                </p>
-                <p className="text-yellow-500/60 text-xs font-bold ml-8 mt-0.5">
-                  เวลา 09:00 — 18:00 น.
-                </p>
+                {hasEventDate && (
+                  <p className="ml-8 text-sm font-extrabold text-white/90">
+                    {hasStartDate && hasEndDate && eventSettings!.startDate === eventSettings!.endDate
+                      ? `${formatDateTH(eventSettings!.startDate)} วันเดียวเท่านั้น`
+                      : hasStartDate && hasEndDate
+                        ? `${formatDateTH(eventSettings!.startDate)} — ${formatDateTH(eventSettings!.endDate)}`
+                        : hasStartDate
+                          ? `เริ่ม ${formatDateTH(eventSettings!.startDate)}`
+                          : `ถึง ${formatDateTH(eventSettings!.endDate!)}`
+                    }
+                  </p>
+                )}
+                {hasEventTime && eventSettings!.startTime && eventSettings!.endTime && (
+                  <p className="text-yellow-500/60 text-xs font-bold ml-8 mt-0.5">
+                    เวลา {eventSettings!.startTime} — {eventSettings!.endTime} น.
+                  </p>
+                )}
               </div>
             )}
 

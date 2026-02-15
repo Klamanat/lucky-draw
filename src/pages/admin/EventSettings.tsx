@@ -96,17 +96,33 @@ export function EventSettings() {
         ) : (
           <div className="glass-card rounded-2xl p-6 border border-yellow-500/25">
             <div className="space-y-6">
-              {/* Event Date (info only) */}
-              <div className="p-4 rounded-xl" style={{
-                background: 'rgba(255, 180, 50, 0.06)',
-                border: '1px solid rgba(255, 215, 0, 0.1)',
-              }}>
-                <h3 className="text-yellow-400/90 font-extrabold text-sm mb-1 flex items-center gap-2">
+              {/* Date Range */}
+              <div>
+                <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
                   <ClockIcon className="w-4 h-4 text-yellow-500" />
-                  วันจัดกิจกรรม
+                  ช่วงวันกิจกรรม
                 </h3>
-                <p className="text-white font-extrabold text-lg ml-6">17 กุมภาพันธ์ 2569</p>
-                <p className="text-white/50 text-xs ml-6 mt-0.5">* แก้ไขวันได้ที่ไฟล์ Home.tsx และ InfoPopup.tsx</p>
+                <p className="text-white/50 text-xs mb-3">ถ้าไม่ระบุ = เข้าได้ตลอดเวลา</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-white/90 text-xs font-medium mb-1.5">วันเริ่ม</label>
+                    <input
+                      type="date"
+                      value={settings.startDate}
+                      onChange={(e) => setSettings({ ...settings, startDate: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white/90 text-xs font-medium mb-1.5">วันสิ้นสุด</label>
+                    <input
+                      type="date"
+                      value={settings.endDate}
+                      onChange={(e) => setSettings({ ...settings, endDate: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Time Range */}
@@ -119,18 +135,32 @@ export function EventSettings() {
                   <div>
                     <label className="block text-white/90 text-xs font-medium mb-1.5">เวลาเริ่ม</label>
                     <input
-                      type="time"
+                      type="text"
+                      placeholder="เช่น 08:00"
+                      pattern="[0-2][0-9]:[0-5][0-9]"
+                      maxLength={5}
                       value={settings.startTime}
-                      onChange={(e) => setSettings({ ...settings, startTime: e.target.value })}
+                      onChange={(e) => {
+                        let v = e.target.value.replace(/[^0-9:]/g, '');
+                        if (v.length === 2 && !v.includes(':') && settings.startTime.length < v.length) v += ':';
+                        setSettings({ ...settings, startTime: v });
+                      }}
                       className={inputClass}
                     />
                   </div>
                   <div>
                     <label className="block text-white/90 text-xs font-medium mb-1.5">เวลาสิ้นสุด</label>
                     <input
-                      type="time"
+                      type="text"
+                      placeholder="เช่น 20:00"
+                      pattern="[0-2][0-9]:[0-5][0-9]"
+                      maxLength={5}
                       value={settings.endTime}
-                      onChange={(e) => setSettings({ ...settings, endTime: e.target.value })}
+                      onChange={(e) => {
+                        let v = e.target.value.replace(/[^0-9:]/g, '');
+                        if (v.length === 2 && !v.includes(':') && settings.endTime.length < v.length) v += ':';
+                        setSettings({ ...settings, endTime: v });
+                      }}
                       className={inputClass}
                     />
                   </div>

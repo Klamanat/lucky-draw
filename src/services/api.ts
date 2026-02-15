@@ -312,7 +312,7 @@ const demoApi = {
     if (!entry) {
       return { success: false, error: 'ไม่พบรายการ' };
     }
-    entry.status = 'transferred';
+    entry.status = entry.status === 'donated' ? 'donated_transferred' : 'transferred';
     invalidateCache('getHistory', 'getAllHistory', 'getStats');
     return { success: true };
   },
@@ -327,6 +327,14 @@ const demoApi = {
     entry.donation_amount = amount;
     invalidateCache('getHistory', 'getAllHistory', 'getStats');
     return { success: true };
+  },
+
+  async getParticipants(): Promise<{ success: boolean; users: User[] }> {
+    return fetchWithCache('getParticipants', 'getParticipants', async () => {
+      await delay(300);
+      const users = demoUsers.filter(u => u.role === 'user');
+      return { success: true, users };
+    });
   },
 
   async getStats(): Promise<{ success: boolean; stats: { totalSpins: number; totalUsers: number; totalDonations: number; totalDonationAmount: number; prizeStats: Record<string, number> } }> {
@@ -472,6 +480,10 @@ const realApi = {
 
   async getAllHistory(): Promise<{ success: boolean; history: SpinHistory[] }> {
     return fetchWithCache('getAllHistory', 'getAllHistory', () => fetchApi('getAllHistory'));
+  },
+
+  async getParticipants(): Promise<{ success: boolean; users: User[] }> {
+    return fetchWithCache('getParticipants', 'getParticipants', () => fetchApi('getParticipants'));
   },
 
   async claimPrize(historyId: string, paymentInfo: PaymentInfo): Promise<{ success: boolean; error?: string }> {

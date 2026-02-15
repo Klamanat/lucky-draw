@@ -11,6 +11,13 @@ export function SpinLogs() {
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<SpinHistory | null>(null);
   const [marking, setMarking] = useState(false);
+  const [transferFilter, setTransferFilter] = useState<'all' | 'pending' | 'done'>('all');
+
+  const filteredHistory = transferFilter === 'all'
+    ? history
+    : transferFilter === 'pending'
+      ? history.filter(h => isTransferPending(h))
+      : history.filter(h => isTransferDone(h));
 
   useEffect(() => {
     loadHistory();
@@ -86,6 +93,37 @@ export function SpinLogs() {
           </div>
         </div>
 
+        {/* Filter Tabs */}
+        {!loading && (
+          <div className="flex gap-2 mb-4">
+            {([
+              { key: 'all', label: 'ทั้งหมด' },
+              { key: 'pending', label: 'ยังไม่โอน' },
+              { key: 'done', label: 'โอนแล้ว' },
+            ] as const).map(tab => {
+              const isActive = transferFilter === tab.key;
+              const count = tab.key === 'all'
+                ? history.length
+                : tab.key === 'pending'
+                  ? history.filter(h => isTransferPending(h)).length
+                  : history.filter(h => isTransferDone(h)).length;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setTransferFilter(tab.key)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                    isActive
+                      ? 'text-yellow-300 bg-yellow-500/15 border-yellow-500/30'
+                      : 'text-white/60 bg-black/20 border-white/10 hover:bg-white/5'
+                  }`}
+                >
+                  {tab.label} ({count})
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {loading ? (
           <div className="glass-card rounded-2xl p-12 text-center border border-yellow-500/25">
             <div className="flex flex-col items-center gap-4">
@@ -95,54 +133,88 @@ export function SpinLogs() {
           </div>
         ) : (
           <div className="glass-card rounded-2xl overflow-hidden border border-yellow-500/25">
-            {/* Table Header */}
-            <div className="bg-black/30 px-5 py-3.5 border-b border-yellow-500/25">
+            {/* Table Header - desktop */}
+            <div className="hidden md:block bg-black/30 px-5 py-3.5 border-b border-yellow-500/25">
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-2 text-white/90 text-xs font-medium tracking-wide">รหัสพนักงาน</div>
                 <div className="col-span-2 text-white/90 text-xs font-medium tracking-wide">ชื่อ</div>
-                <div className="col-span-3 text-white/90 text-xs font-medium tracking-wide">รางวัล</div>
+                <div className="col-span-2 text-white/90 text-xs font-medium tracking-wide">รางวัล</div>
                 <div className="col-span-2 text-white/90 text-xs font-medium tracking-wide">สถานะ</div>
-                <div className="col-span-3 text-white/90 text-xs font-medium tracking-wide">เวลา</div>
+                <div className="col-span-2 text-white/90 text-xs font-medium tracking-wide">การโอน</div>
+                <div className="col-span-2 text-white/90 text-xs font-medium tracking-wide">เวลา</div>
               </div>
             </div>
 
             {/* Table Body */}
             <div className="divide-y divide-white/10">
-              {history.map((item) => {
+              {filteredHistory.map((item) => {
                 const hasPayment = !!getPaymentMethod(item);
+                const isClickable = hasPayment;
                 return (
                   <div
                     key={item.id}
-                    className={`px-5 py-3.5 grid grid-cols-12 gap-4 items-center transition-colors ${hasPayment ? 'cursor-pointer hover:bg-black/20' : 'hover:bg-black/15'}`}
-                    onClick={() => hasPayment ? setSelectedItem(item) : null}
+                    className={`px-4 py-3 md:px-5 md:py-3.5 transition-colors ${isClickable ? 'cursor-pointer hover:bg-black/20' : 'hover:bg-black/15'}`}
+                    onClick={() => isClickable ? setSelectedItem(item) : null}
                   >
-                    <div className="col-span-2">
-                      <span className="font-mono text-xs font-medium text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded border border-yellow-500/25">
-                        {item.employee_id}
-                      </span>
+                    {/* Mobile card layout */}
+                    <div className="md:hidden space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-medium text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/25">
+                            {item.employee_id}
+                          </span>
+                          <span className="text-white/90 text-sm font-medium">{item.user_name}</span>
+                        </div>
+                        {renderTransferStatus(item)}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1.5 text-white text-xs font-medium bg-black/30 px-2 py-1 rounded-lg border border-yellow-500/25">
+                          <GiftIcon className="w-3 h-3 text-yellow-500" />
+                          {item.prize_name}
+                        </span>
+                        {renderStatus(item)}
+                      </div>
+                      <div className="text-white/50 text-xs flex items-center gap-1.5">
+                        <ClockIcon className="w-3 h-3" />
+                        {formatDate(item.spun_at)}
+                      </div>
                     </div>
-                    <div className="col-span-2 text-white/90 text-sm font-medium">{item.user_name}</div>
-                    <div className="col-span-3">
-                      <span className="inline-flex items-center gap-1.5 text-white text-sm font-medium bg-black/30 px-2.5 py-1 rounded-lg border border-yellow-500/25">
-                        <GiftIcon className="w-3 h-3 text-yellow-500" />
-                        {item.prize_name}
-                      </span>
-                    </div>
-                    <div className="col-span-2">
-                      {renderStatus(item)}
-                    </div>
-                    <div className="col-span-3 text-white/90 text-xs flex items-center gap-1.5">
-                      <ClockIcon className="w-3 h-3" />
-                      {formatDate(item.spun_at)}
+
+                    {/* Desktop grid layout */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                      <div className="col-span-2">
+                        <span className="font-mono text-xs font-medium text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded border border-yellow-500/25">
+                          {item.employee_id}
+                        </span>
+                      </div>
+                      <div className="col-span-2 text-white/90 text-sm font-medium">{item.user_name}</div>
+                      <div className="col-span-2">
+                        <span className="inline-flex items-center gap-1.5 text-white text-xs font-medium bg-black/30 px-2 py-1 rounded-lg border border-yellow-500/25">
+                          <GiftIcon className="w-3 h-3 text-yellow-500" />
+                          {item.prize_name}
+                        </span>
+                      </div>
+                      <div className="col-span-2">
+                        {renderStatus(item)}
+                      </div>
+                      <div className="col-span-2">
+                        {renderTransferStatus(item)}
+                      </div>
+                      <div className="col-span-2 text-white/90 text-xs flex items-center gap-1.5">
+                        <ClockIcon className="w-3 h-3" />
+                        {formatDate(item.spun_at)}
+                      </div>
                     </div>
                   </div>
                 );
               })}
 
-              {history.length === 0 && (
+              {filteredHistory.length === 0 && (
                 <div className="px-6 py-16 text-center">
                   <InboxIcon className="w-10 h-10 text-white/10 mb-3 mx-auto" />
-                  <p className="text-white/90 font-medium text-sm">ยังไม่มีประวัติการหมุน</p>
+                  <p className="text-white/90 font-medium text-sm">
+                    {history.length === 0 ? 'ยังไม่มีประวัติการหมุน' : 'ไม่มีรายการที่ตรงกับตัวกรอง'}
+                  </p>
                 </div>
               )}
             </div>
@@ -206,9 +278,41 @@ export function SpinLogs() {
                 {renderPaymentDetail(selectedItem)}
               </div>
 
+              {/* Donation info */}
+              {(selectedItem.status === 'donated' || selectedItem.status === 'donated_transferred') && selectedItem.donation_amount && (() => {
+                const prizeValue = extractPrizeValue(selectedItem.prize_name);
+                const remaining = prizeValue ? prizeValue - selectedItem.donation_amount! : null;
+                return (
+                  <div className="p-4 rounded-xl mb-5" style={{
+                    background: 'rgba(236, 72, 153, 0.06)',
+                    border: '1px solid rgba(236, 72, 153, 0.12)',
+                  }}>
+                    <p className="text-pink-400/90 text-xs font-extrabold mb-2">ข้อมูลการบริจาค</p>
+                    <div className="space-y-2">
+                      {prizeValue && (
+                        <div className="flex justify-between">
+                          <span className="text-white/60 text-sm">มูลค่ารางวัล</span>
+                          <span className="text-white font-bold text-sm">{prizeValue.toLocaleString()} บาท</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-white/60 text-sm">จำนวนบริจาค</span>
+                        <span className="text-pink-300 font-bold text-sm">{selectedItem.donation_amount!.toLocaleString()} บาท</span>
+                      </div>
+                      {remaining !== null && remaining > 0 && (
+                        <div className="flex justify-between pt-1 border-t border-white/10">
+                          <span className="text-white/60 text-sm">ยอดที่เหลือ</span>
+                          <span className="text-yellow-300 font-bold text-sm">{remaining.toLocaleString()} บาท</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Actions */}
               <div className="flex gap-3">
-                {selectedItem.status !== 'transferred' && selectedItem.status !== 'donated' && (
+                {canMarkTransferred(selectedItem) && (
                   <button
                     onClick={() => handleMarkTransferred(selectedItem.id)}
                     disabled={marking}
@@ -220,12 +324,12 @@ export function SpinLogs() {
                       boxShadow: '0 4px 20px rgba(5, 150, 105, 0.2)',
                     }}
                   >
-                    {marking ? 'กำลังบันทึก...' : 'โอนแล้ว'}
+                    {marking ? 'กำลังบันทึก...' : (selectedItem.status === 'donated' ? 'โอนส่วนที่เหลือแล้ว' : 'โอนแล้ว')}
                   </button>
                 )}
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className={`${selectedItem.status === 'transferred' || selectedItem.status === 'donated' ? 'w-full' : 'flex-1'} py-3 rounded-xl font-bold text-sm hover:bg-white/10 transition-colors`}
+                  className={`${!canMarkTransferred(selectedItem) ? 'w-full' : 'flex-1'} py-3 rounded-xl font-bold text-sm hover:bg-white/10 transition-colors`}
                   style={{
                     background: 'rgba(0, 0, 0, 0.25)',
                     color: 'rgba(255, 255, 255, 0.8)',
@@ -243,12 +347,32 @@ export function SpinLogs() {
   );
 }
 
+function canMarkTransferred(item: SpinHistory): boolean {
+  const hasPayment = !!getPaymentMethod(item);
+  if (!hasPayment) return false;
+  if (item.status === 'claimed') return true;
+  if (item.status === 'donated' && item.donation_amount) return true;
+  return false;
+}
+
 function renderStatus(item: SpinHistory) {
   if (item.status === 'transferred') {
     return (
       <span className="inline-flex items-center gap-1 text-blue-300 text-xs font-medium bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/10">
         <CheckIcon className="w-3 h-3" /> โอนแล้ว
       </span>
+    );
+  }
+  if (item.status === 'donated_transferred') {
+    return (
+      <div>
+        <span className="inline-flex items-center gap-1 text-pink-300 text-xs font-medium bg-pink-500/10 px-2 py-1 rounded-lg border border-pink-500/10">
+          <HeartIcon className="w-3 h-3" /> บริจาค
+        </span>
+        <span className="inline-flex items-center gap-1 text-blue-300 text-xs font-medium bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/10 ml-1">
+          <CheckIcon className="w-3 h-3" /> โอนแล้ว
+        </span>
+      </div>
     );
   }
   if (item.status === 'donated') {
@@ -333,6 +457,43 @@ function renderPaymentDetail(item: SpinHistory) {
 function getPaymentMethod(item: SpinHistory): string | null {
   if (item.payment_method) return item.payment_method;
   if (item.payment_info?.method) return item.payment_info.method;
+  return null;
+}
+
+function isTransferPending(item: SpinHistory): boolean {
+  const hasPayment = !!getPaymentMethod(item);
+  if (!hasPayment) return false;
+  return item.status === 'claimed' || item.status === 'donated';
+}
+
+function isTransferDone(item: SpinHistory): boolean {
+  return item.status === 'transferred' || item.status === 'donated_transferred';
+}
+
+function renderTransferStatus(item: SpinHistory) {
+  const hasPayment = !!getPaymentMethod(item);
+  if (!hasPayment) {
+    return <span className="text-white/30 text-xs">-</span>;
+  }
+  if (isTransferDone(item)) {
+    return (
+      <span className="inline-flex items-center gap-1 text-blue-300 text-xs font-medium bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/10">
+        <CheckIcon className="w-3 h-3" /> โอนแล้ว
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-yellow-300 text-xs font-medium bg-yellow-500/10 px-2 py-1 rounded-lg border border-yellow-500/15">
+      <ClockIcon className="w-3 h-3" /> ยังไม่โอน
+    </span>
+  );
+}
+
+function extractPrizeValue(prizeName: string): number | null {
+  const match = prizeName.match(/(\d[\d,]*)/);
+  if (match) {
+    return parseInt(match[1].replace(/,/g, ''), 10) || null;
+  }
   return null;
 }
 

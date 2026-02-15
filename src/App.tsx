@@ -6,6 +6,7 @@ import { PrizeManager } from './pages/admin/PrizeManager';
 import { SpinLogs } from './pages/admin/SpinLogs';
 import { EmployeeManager } from './pages/admin/EmployeeManager';
 import { EventSettings } from './pages/admin/EventSettings';
+import { Participants } from './pages/admin/Participants';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/admin/logs" element={<SpinLogs />} />
           <Route path="/admin/employees" element={<EmployeeManager />} />
           <Route path="/admin/settings" element={<EventSettings />} />
+          <Route path="/admin/participants" element={<Participants />} />
         </Routes>
       </div>
     </BrowserRouter>

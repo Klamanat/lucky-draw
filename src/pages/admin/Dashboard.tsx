@@ -49,6 +49,7 @@ export function Dashboard() {
   const navItems = [
     { to: '/admin/prizes', icon: GiftIcon, title: 'จัดการรางวัล', desc: 'เพิ่ม แก้ไข ลบรางวัล', color: 'from-red-600 to-red-800' },
     { to: '/admin/employees', icon: UsersIcon, title: 'จัดการพนักงาน', desc: 'กำหนดสิทธิ์เข้าร่วม', color: 'from-amber-600 to-amber-800' },
+    { to: '/admin/participants', icon: UsersIcon, title: 'ผู้เข้าร่วม', desc: 'ดูรายชื่อผู้ลงทะเบียน', color: 'from-emerald-600 to-emerald-800' },
     { to: '/admin/logs', icon: ClipboardIcon, title: 'ประวัติทั้งหมด', desc: 'ดูรายการหมุนทั้งหมด', color: 'from-yellow-600 to-yellow-800' },
     { to: '/admin/settings', icon: ClockIcon, title: 'ตั้งค่ากิจกรรม', desc: 'ช่วงเวลาและวันที่', color: 'from-orange-600 to-orange-800' },
   ];
@@ -56,23 +57,23 @@ export function Dashboard() {
   return (
     <div className="min-h-screen p-4 py-16">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center justify-between mb-8 sm:mb-10">
           <div>
-            <h1 className="text-2xl font-bold"><span className="gold-shimmer">ระบบจัดการ</span></h1>
+            <h1 className="text-xl sm:text-2xl font-bold"><span className="gold-shimmer">ระบบจัดการ</span></h1>
             <div className="divider-gold w-16 mt-2" />
           </div>
-          <Link to="/" className="glass-card px-5 py-2.5 text-white/90 rounded-xl hover:bg-white/10 transition-all text-sm font-medium border border-yellow-500/25">กลับหน้าหลัก</Link>
+          <Link to="/" className="glass-card px-4 py-2 sm:px-5 sm:py-2.5 text-white/90 rounded-xl hover:bg-white/10 transition-all text-xs sm:text-sm font-medium border border-yellow-500/25">กลับหน้าหลัก</Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-10">
           {navItems.map(({ to, icon: Icon, title, desc, color }) => (
             <Link key={to} to={to} className="group">
-              <div className="glass-card rounded-2xl p-6 text-center border border-yellow-500/25 group-hover:border-yellow-500/25 transition-all group-hover:bg-white/10">
-                <div className={`w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform border border-yellow-500/25`}>
-                  <Icon className="w-6 h-6 text-white" />
+              <div className="glass-card rounded-2xl p-4 sm:p-6 text-center border border-yellow-500/25 group-hover:border-yellow-500/25 transition-all group-hover:bg-white/10">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform border border-yellow-500/25`}>
+                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <p className="text-white font-bold text-sm mb-0.5">{title}</p>
-                <p className="text-white/90 text-xs">{desc}</p>
+                <p className="text-white font-bold text-xs sm:text-sm mb-0.5">{title}</p>
+                <p className="text-white/90 text-xs hidden sm:block">{desc}</p>
               </div>
             </Link>
           ))}
@@ -86,32 +87,32 @@ export function Dashboard() {
             </div>
           </div>
         ) : stats ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="glass-card rounded-2xl p-6 border border-yellow-500/25">
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg border border-yellow-500/25">
-                  <TargetIcon className="w-6 h-6 text-white" />
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4">
+            <div className="glass-card rounded-2xl p-4 sm:p-6 border border-yellow-500/25">
+              <div className="flex items-center gap-3 sm:gap-5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg border border-yellow-500/25">
+                  <TargetIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <div>
-                  <p className="text-white/90 text-xs font-medium mb-0.5">จำนวนหมุนทั้งหมด</p>
-                  <p className="text-3xl font-bold text-white">{stats.totalSpins.toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="glass-card rounded-2xl p-6 border border-yellow-500/25">
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-lg border border-yellow-500/25">
-                  <UsersIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-white/90 text-xs font-medium mb-0.5">ผู้เข้าร่วมทั้งหมด</p>
-                  <p className="text-3xl font-bold text-white">{stats.totalUsers.toLocaleString()}</p>
+                <div className="min-w-0">
+                  <p className="text-white/90 text-xs font-medium mb-0.5">หมุนทั้งหมด</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-white">{stats.totalSpins.toLocaleString()}</p>
                 </div>
               </div>
             </div>
 
-            <div className="glass-card rounded-2xl p-6 border border-yellow-500/25 md:col-span-2">
+            <div className="glass-card rounded-2xl p-4 sm:p-6 border border-yellow-500/25">
+              <div className="flex items-center gap-3 sm:gap-5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-lg border border-yellow-500/25">
+                  <UsersIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white/90 text-xs font-medium mb-0.5">ผู้เข้าร่วม</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-white">{stats.totalUsers.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="glass-card rounded-2xl p-4 sm:p-6 border border-yellow-500/25 col-span-2">
               <div className="flex items-center gap-5">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-600 to-pink-800 flex items-center justify-center shadow-lg">
                   <HeartIcon className="w-6 h-6 text-white" />

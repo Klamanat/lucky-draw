@@ -35,7 +35,7 @@ export interface SpinHistory {
   prize_id: string;
   prize_name: string;
   spun_at: string;
-  status: 'claimed' | 'donated' | 'transferred';
+  status: 'claimed' | 'donated' | 'transferred' | 'donated_transferred';
   donation_amount?: number;
   payment_info?: PaymentInfo;
   // Flat fields from GAS
