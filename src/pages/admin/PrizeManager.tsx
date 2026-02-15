@@ -90,7 +90,7 @@ export function PrizeManager() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setEditingPrize({ name: '', probability: 10, quantity: -1, color: DEFAULT_COLORS[prizes.length % DEFAULT_COLORS.length], is_active: true, is_donatable: true })}
+              onClick={() => setEditingPrize({ name: '', probability: 10, quantity: -1, color: DEFAULT_COLORS[prizes.length % DEFAULT_COLORS.length], is_active: true, is_donatable: true, is_money: false })}
               className="px-5 py-2.5 btn-gold rounded-xl font-bold flex items-center gap-2 text-sm"
             >
               <PlusIcon className="w-4 h-4" /> เพิ่มรางวัล
@@ -128,6 +128,11 @@ export function PrizeManager() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-white font-bold text-sm">{prize.name}</p>
+                    {prize.is_money && (
+                      <span className="text-xs font-medium text-yellow-300 bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
+                        💰 เงิน
+                      </span>
+                    )}
                     {prize.is_donatable && (
                       <span className="text-xs font-medium text-pink-300 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/20 flex items-center gap-1">
                         <HeartIcon className="w-3 h-3" /> บริจาคได้
@@ -264,7 +269,19 @@ export function PrizeManager() {
                   </div>
                 </div>
 
-                <div>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <div
+                      onClick={() => setEditingPrize({ ...editingPrize, is_money: !editingPrize.is_money })}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${editingPrize.is_money ? 'bg-yellow-500' : 'bg-white/15'}`}
+                    >
+                      <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${editingPrize.is_money ? 'translate-x-5' : ''}`} />
+                    </div>
+                    <span className="text-sm font-medium text-white/90">
+                      💰 รางวัลเป็นเงิน (ต้องกรอกบัญชี/PromptPay)
+                    </span>
+                  </label>
+
                   <label className="flex items-center gap-3 cursor-pointer">
                     <div
                       onClick={() => setEditingPrize({ ...editingPrize, is_donatable: !editingPrize.is_donatable })}

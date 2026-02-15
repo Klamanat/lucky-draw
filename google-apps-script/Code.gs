@@ -106,6 +106,12 @@ function handleRequest(e) {
       case 'getAllHistory':
         result = getAllHistory();
         break;
+      case 'claimPrize':
+        result = claimPrize(JSON.parse(e.postData.contents));
+        break;
+      case 'markTransferred':
+        result = markTransferred(e.parameter.historyId);
+        break;
       case 'donatePrize':
         result = donatePrize(e.parameter.historyId, parseFloat(e.parameter.amount) || 0);
         break;
@@ -351,7 +357,8 @@ function getPrizes() {
         quantity: parseInt(row[5]) || -1,
         is_active: row[6],
         color: row[7] || '#3b82f6',
-        is_donatable: row[8] !== false
+        is_donatable: row[8] !== false,
+        is_money: row[9] === true
       });
     }
   }
@@ -381,6 +388,7 @@ function readPrizesFromSheet(prizeSheet) {
         is_active: row[6],
         color: row[7] || '#3b82f6',
         is_donatable: row[8] !== false,
+        is_money: row[9] === true,
         _rowIndex: i + 1,
         _rawQuantity: row[5]
       });
@@ -404,11 +412,12 @@ function addPrize(prizeData) {
     prizeData.quantity !== undefined ? prizeData.quantity : -1,
     prizeData.is_active !== false,
     prizeData.color || '#3b82f6',
-    prizeData.is_donatable !== false
+    prizeData.is_donatable !== false,
+    prizeData.is_money === true
   ]);
 
   removeCache([CACHE_KEY_PRIZES]);
-  return { success: true, prize: { id: newId.toString(), name: prizeData.name, description: prizeData.description || '', image_url: prizeData.image_url || '', probability: prizeData.probability || 10, quantity: prizeData.quantity !== undefined ? prizeData.quantity : -1, is_active: true, color: prizeData.color || '#3b82f6', is_donatable: prizeData.is_donatable !== false } };
+  return { success: true, prize: { id: newId.toString(), name: prizeData.name, description: prizeData.description || '', image_url: prizeData.image_url || '', probability: prizeData.probability || 10, quantity: prizeData.quantity !== undefined ? prizeData.quantity : -1, is_active: true, color: prizeData.color || '#3b82f6', is_donatable: prizeData.is_donatable !== false, is_money: prizeData.is_money === true } };
 }
 
 function updatePrize(prizeData) {
@@ -418,7 +427,7 @@ function updatePrize(prizeData) {
   for (var i = 1; i < data.length; i++) {
     if (data[i][0].toString() === prizeData.id.toString()) {
       var row = i + 1;
-      sheet.getRange(row, 2, 1, 8).setValues([[
+      sheet.getRange(row, 2, 1, 9).setValues([[
         prizeData.name,
         prizeData.description || '',
         prizeData.image_url || '',
@@ -426,7 +435,8 @@ function updatePrize(prizeData) {
         prizeData.quantity !== undefined ? prizeData.quantity : -1,
         prizeData.is_active !== false,
         prizeData.color || '#3b82f6',
-        prizeData.is_donatable !== false
+        prizeData.is_donatable !== false,
+        prizeData.is_money === true
       ]]);
       removeCache([CACHE_KEY_PRIZES]);
       return { success: true };
@@ -473,6 +483,7 @@ function spin(userId) {
     var userName = '';
     var employeeId = '';
     var spinsRemaining = 0;
+    var isAdmin = (userId === 'admin');
 
     for (var i = 1; i < userData.length; i++) {
       if (userData[i][0].toString() === userId.toString()) {
@@ -485,10 +496,19 @@ function spin(userId) {
     }
 
     if (userRow === -1) {
-      return { success: false, error: 'ไม่พบผู้ใช้งาน' };
+      if (isAdmin) {
+        // Admin ไม่มีใน sheet — สร้างให้อัตโนมัติ
+        userSheet.appendRow(['admin', 'ADMIN', 'ผู้ดูแลระบบ', '', 999, 'admin', new Date()]);
+        userRow = userSheet.getLastRow();
+        employeeId = 'ADMIN';
+        userName = 'ผู้ดูแลระบบ';
+        spinsRemaining = 999;
+      } else {
+        return { success: false, error: 'ไม่พบผู้ใช้งาน' };
+      }
     }
 
-    if (spinsRemaining <= 0) {
+    if (!isAdmin && spinsRemaining <= 0) {
       return { success: false, error: 'ไม่มีสิทธิ์หมุนแล้ว' };
     }
 
@@ -546,7 +566,8 @@ function spin(userId) {
       quantity: selectedPrize.quantity > 0 ? selectedPrize.quantity - 1 : selectedPrize.quantity,
       is_active: selectedPrize.is_active,
       color: selectedPrize.color,
-      is_donatable: selectedPrize.is_donatable
+      is_donatable: selectedPrize.is_donatable,
+      is_money: selectedPrize.is_money
     };
 
     return {
@@ -558,6 +579,60 @@ function spin(userId) {
   } finally {
     lock.releaseLock();
   }
+}
+
+function claimPrize(data) {
+  var historyId = data.historyId;
+  var paymentInfo = data.paymentInfo;
+  if (!historyId || !paymentInfo) {
+    return { success: false, error: 'ข้อมูลไม่ครบ' };
+  }
+
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('spin_history');
+  var rows = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < rows.length; i++) {
+    if (rows[i][0].toString() === historyId.toString()) {
+      // คอลัมน์ 10-12: payment_method, bank_name/promptpay_number, account_number
+      var method = paymentInfo.method || '';
+      var col10 = method;
+      var col11 = '';
+      var col12 = '';
+
+      if (method === 'promptpay') {
+        col11 = paymentInfo.promptpayNumber || '';
+      } else if (method === 'bank') {
+        col11 = paymentInfo.bankName || '';
+        col12 = paymentInfo.accountNumber || '';
+      }
+
+      sheet.getRange(i + 1, 10, 1, 3).setValues([[col10, col11, col12]]);
+
+      var userId = rows[i][1].toString();
+      removeCache([CACHE_KEY_ALL_HISTORY, historyKey(userId)]);
+      return { success: true };
+    }
+  }
+
+  return { success: false, error: 'ไม่พบรายการ' };
+}
+
+function markTransferred(historyId) {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('spin_history');
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0].toString() === historyId.toString()) {
+      sheet.getRange(i + 1, 8).setValue('transferred');
+      var userId = data[i][1].toString();
+      removeCache([CACHE_KEY_ALL_HISTORY, CACHE_KEY_STATS, historyKey(userId)]);
+      return { success: true };
+    }
+  }
+
+  return { success: false, error: 'ไม่พบรายการ' };
 }
 
 function donatePrize(historyId, amount) {
@@ -592,7 +667,7 @@ function getHistory(userId) {
 
   for (var i = 1; i < data.length; i++) {
     if (data[i][1].toString() === userId.toString()) {
-      history.push({
+      var entry = {
         id: data[i][0].toString(),
         user_id: data[i][1].toString(),
         user_name: data[i][2],
@@ -602,7 +677,13 @@ function getHistory(userId) {
         spun_at: data[i][6] ? new Date(data[i][6]).toISOString() : '',
         status: data[i][7] || 'claimed',
         donation_amount: parseFloat(data[i][8]) || 0
-      });
+      };
+      if (data[i][9]) {
+        entry.payment_method = data[i][9].toString();
+        entry.payment_detail1 = data[i][10] ? data[i][10].toString() : '';
+        entry.payment_detail2 = data[i][11] ? data[i][11].toString() : '';
+      }
+      history.push(entry);
     }
   }
 
@@ -624,7 +705,7 @@ function getAllHistory() {
 
   for (var i = 1; i < data.length; i++) {
     if (data[i][0]) {
-      history.push({
+      var entry = {
         id: data[i][0].toString(),
         user_id: data[i][1].toString(),
         user_name: data[i][2],
@@ -634,7 +715,13 @@ function getAllHistory() {
         spun_at: data[i][6] ? new Date(data[i][6]).toISOString() : '',
         status: data[i][7] || 'claimed',
         donation_amount: parseFloat(data[i][8]) || 0
-      });
+      };
+      if (data[i][9]) {
+        entry.payment_method = data[i][9].toString();
+        entry.payment_detail1 = data[i][10] ? data[i][10].toString() : '';
+        entry.payment_detail2 = data[i][11] ? data[i][11].toString() : '';
+      }
+      history.push(entry);
     }
   }
 
@@ -787,7 +874,7 @@ function setupSheets() {
   if (!prizeSheet) {
     prizeSheet = ss.insertSheet('prizes');
   }
-  prizeSheet.getRange(1, 1, 1, 9).setValues([['id', 'name', 'description', 'image_url', 'probability', 'quantity', 'is_active', 'color', 'is_donatable']]);
+  prizeSheet.getRange(1, 1, 1, 10).setValues([['id', 'name', 'description', 'image_url', 'probability', 'quantity', 'is_active', 'color', 'is_donatable', 'is_money']]);
 
   // Users sheet
   var userSheet = ss.getSheetByName('users');
@@ -801,7 +888,7 @@ function setupSheets() {
   if (!historySheet) {
     historySheet = ss.insertSheet('spin_history');
   }
-  historySheet.getRange(1, 1, 1, 9).setValues([['id', 'user_id', 'user_name', 'employee_id', 'prize_id', 'prize_name', 'spun_at', 'status', 'donation_amount']]);
+  historySheet.getRange(1, 1, 1, 12).setValues([['id', 'user_id', 'user_name', 'employee_id', 'prize_id', 'prize_name', 'spun_at', 'status', 'donation_amount', 'payment_method', 'payment_detail1', 'payment_detail2']]);
 
   // Allowed employees sheet
   var allowedSheet = ss.getSheetByName('allowed_employees');
@@ -818,13 +905,13 @@ function setupSheets() {
   settingsSheet.getRange(1, 1, 1, 2).setValues([['key', 'value']]);
 
   // Add sample prizes
-  prizeSheet.getRange(2, 1, 6, 9).setValues([
-    ['1', 'อั่งเปา 888', 'อั่งเปามงคล', '', 5, 1, true, '#c41e3a', true],
-    ['2', 'ทองคำ 1 สลึง', 'ทองคำแท้', '', 5, 2, true, '#ffd700', true],
-    ['3', 'อั่งเปา 168', 'เลขมงคล', '', 15, 10, true, '#8b0000', true],
-    ['4', 'ส่วนลด 20%', 'คูปองส่วนลด', '', 25, -1, true, '#daa520', false],
-    ['5', 'ส้มมงคล', 'ส้มโชคดี', '', 25, -1, true, '#b22222', false],
-    ['6', 'ลองใหม่นะ', 'โชคดีครั้งหน้า', '', 25, -1, true, '#cd853f', false]
+  prizeSheet.getRange(2, 1, 6, 10).setValues([
+    ['1', 'อั่งเปา 888', 'อั่งเปามงคล', '', 5, 1, true, '#c41e3a', true, true],
+    ['2', 'ทองคำ 1 สลึง', 'ทองคำแท้', '', 5, 2, true, '#ffd700', true, false],
+    ['3', 'อั่งเปา 168', 'เลขมงคล', '', 15, 10, true, '#8b0000', true, true],
+    ['4', 'ส่วนลด 20%', 'คูปองส่วนลด', '', 25, -1, true, '#daa520', false, false],
+    ['5', 'ส้มมงคล', 'ส้มโชคดี', '', 25, -1, true, '#b22222', false, false],
+    ['6', 'ลองใหม่นะ', 'โชคดีครั้งหน้า', '', 25, -1, true, '#cd853f', false, false]
   ]);
 
   // Add sample allowed employees

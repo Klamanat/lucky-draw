@@ -8,7 +8,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useSpin } from '../hooks/useSpin';
 import { isDemoMode, getAllowedEmployees, api, invalidateCache } from '../services/api';
 import { SettingsIcon, LogOutIcon, ScrollIcon } from '../components/icons';
-import type { Prize, EventSettings } from '../types';
+import type { Prize, EventSettings, PaymentInfo } from '../types';
 
 export function Home() {
   const { user, isLoggedIn, loading: authLoading, enterAsEmployee, loginAdmin, logout, updateSpinsRemaining } = useAuth();
@@ -36,57 +36,47 @@ export function Home() {
   const handleSpin = async () => {
     if (!user) return;
 
-    // Validate event time window (only if dates are configured)
-    if (eventSettings && (eventSettings.startDate || eventSettings.endDate)) {
+    // Validate event: วันตาม InfoPopup, เวลาตาม EventSettings (admin ข้ามได้)
+    if (user.role !== 'admin') {
       const now = new Date();
-      // Use local date (not UTC) to avoid timezone issues
       const pad2 = (n: number) => n.toString().padStart(2, '0');
       const today = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
-      const currentTime = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+      const eventDate = '2026-02-15'; // 17 กุมภาพันธ์ 2569
 
-      // Normalize: handle Date objects or various string formats from backend
-      const normalizeDate = (val: string): string => {
-        if (!val) return '';
-        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
-        const d = new Date(val);
-        if (!isNaN(d.getTime())) {
-          return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-        }
-        return '';
-      };
-
-      const normalizeTime = (val: string): string => {
-        if (!val) return '';
-        if (/^\d{2}:\d{2}$/.test(val)) return val;
-        const d = new Date(val);
-        if (!isNaN(d.getTime())) {
-          return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-        }
-        return '';
-      };
-
-      const startDate = normalizeDate(eventSettings.startDate);
-      const endDate = normalizeDate(eventSettings.endDate);
-      const startTime = normalizeTime(eventSettings.startTime);
-      const endTime = normalizeTime(eventSettings.endTime);
-
-      if (startDate && today < startDate) {
+      if (today < eventDate) {
         alert('กิจกรรมยังไม่เริ่ม');
         return;
       }
-      if (endDate && today > endDate) {
+      if (today > eventDate) {
         alert('กิจกรรมสิ้นสุดแล้ว');
         return;
       }
-      // Only check time if today is within the date range (or dates aren't set)
-      const withinDateRange = (!startDate || today >= startDate) && (!endDate || today <= endDate);
-      if (withinDateRange && startTime && currentTime < startTime) {
-        alert(`ยังไม่ถึงเวลากิจกรรม (เริ่ม ${startTime} น.)`);
-        return;
-      }
-      if (withinDateRange && endTime && currentTime > endTime) {
-        alert(`หมดเวลากิจกรรมแล้ว (สิ้นสุด ${endTime} น.)`);
-        return;
+
+      // วันตรงกัน → เช็คเวลา
+      if (eventSettings) {
+        const currentTime = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+
+        const normalizeTime = (val: string): string => {
+          if (!val) return '';
+          if (/^\d{2}:\d{2}$/.test(val)) return val;
+          const d = new Date(val);
+          if (!isNaN(d.getTime())) {
+            return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+          }
+          return '';
+        };
+
+        const startTime = normalizeTime(eventSettings.startTime);
+        const endTime = normalizeTime(eventSettings.endTime);
+
+        if (startTime && currentTime < startTime) {
+          alert(`ยังไม่ถึงเวลากิจกรรม (เริ่ม ${startTime} น.)`);
+          return;
+        }
+        if (endTime && currentTime > endTime) {
+          alert(`หมดเวลากิจกรรมแล้ว (สิ้นสุด ${endTime} น.)`);
+          return;
+        }
       }
     }
 
@@ -108,7 +98,14 @@ export function Home() {
     setTargetPrizeId(undefined);
   };
 
-  const handleClaimPrize = () => {
+  const handleClaimPrize = async (paymentInfo?: PaymentInfo) => {
+    if (paymentInfo && currentHistoryId) {
+      try {
+        await api.claimPrize(currentHistoryId, paymentInfo);
+      } catch {
+        // ignore - still close popup
+      }
+    }
     setWonPrize(null);
     setCurrentHistoryId(null);
   };
@@ -204,7 +201,7 @@ export function Home() {
 
       {/* Header */}
       <div className="relative z-10 flex items-center justify-between w-full max-w-lg mb-6">
-        <div className="px-5 py-3 rounded-xl overflow-hidden relative" style={{
+        <div className="relative px-5 py-3 overflow-hidden rounded-xl" style={{
           background: 'linear-gradient(135deg, rgba(139,26,43,0.6) 0%, rgba(92,10,21,0.5) 100%)',
           border: '1px solid rgba(255, 215, 0, 0.15)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
@@ -253,7 +250,7 @@ export function Home() {
         <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
           <span className="gold-shimmer">หมุนวงล้อรับโชค</span>
         </h1>
-        <div className="w-28 mx-auto mt-3 divider-gold" />
+        <div className="mx-auto mt-3 w-28 divider-gold" />
       </div>
 
       {/* Wheel */}

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import type { Prize } from '../types';
+import type { Prize, PaymentInfo } from '../types';
 import { HeartIcon } from './icons';
 
 interface PrizePopupProps {
   prize: Prize;
-  onClaim: () => void;
+  onClaim: (paymentInfo?: PaymentInfo) => void;
   onDonate: (amount: number) => void;
   donating?: boolean;
 }
@@ -22,6 +22,12 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
   const [confetti, setConfetti] = useState<Confetti[]>([]);
   const [showDonateForm, setShowDonateForm] = useState(false);
   const [donateAmount, setDonateAmount] = useState('');
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'bank' | 'promptpay'>('promptpay');
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [promptpayNumber, setPromptpayNumber] = useState('');
+  const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
     const colors = ['#ffd700', '#dc143c', '#ff6347', '#ffa500', '#ff4444', '#fff8dc'];
@@ -140,7 +146,165 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
               )}
             </div>
 
-            {showDonateForm ? (
+            {showPaymentForm ? (
+              <div className="space-y-4 text-left">
+                <p className="text-yellow-300/90 text-sm font-extrabold text-center mb-3">เลือกช่องทางรับเงิน</p>
+
+                {/* Payment method tabs */}
+                <div className="flex gap-2 mb-4">
+                  <button
+                    onClick={() => setPaymentMethod('promptpay')}
+                    className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
+                      paymentMethod === 'promptpay' ? '' : 'hover:bg-white/10'
+                    }`}
+                    style={paymentMethod === 'promptpay' ? {
+                      background: 'linear-gradient(135deg, #ffd700 0%, #d4a017 50%, #b8860b 100%)',
+                      color: '#5c0000',
+                      border: '1px solid rgba(255, 215, 0, 0.4)',
+                    } : {
+                      background: 'rgba(0, 0, 0, 0.25)',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      border: '1px solid rgba(255, 215, 0, 0.1)',
+                    }}
+                  >
+                    PromptPay
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod('bank')}
+                    className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
+                      paymentMethod === 'bank' ? '' : 'hover:bg-white/10'
+                    }`}
+                    style={paymentMethod === 'bank' ? {
+                      background: 'linear-gradient(135deg, #ffd700 0%, #d4a017 50%, #b8860b 100%)',
+                      color: '#5c0000',
+                      border: '1px solid rgba(255, 215, 0, 0.4)',
+                    } : {
+                      background: 'rgba(0, 0, 0, 0.25)',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      border: '1px solid rgba(255, 215, 0, 0.1)',
+                    }}
+                  >
+                    บัญชีธนาคาร
+                  </button>
+                </div>
+
+                {paymentMethod === 'promptpay' ? (
+                  <div>
+                    <label className="block text-yellow-300/90 text-xs font-extrabold mb-1.5">เบอร์ PromptPay</label>
+                    <input
+                      type="tel"
+                      value={promptpayNumber}
+                      onChange={(e) => setPromptpayNumber(e.target.value)}
+                      placeholder="เบอร์โทรหรือเลขบัตรประชาชน"
+                      className="w-full px-4 py-3 rounded-xl text-white font-bold text-base text-center focus:outline-none transition-all"
+                      style={{
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        border: '1px solid rgba(255, 215, 0, 0.12)',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = 'rgba(255, 215, 0, 0.35)';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(255, 215, 0, 0.08)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = 'rgba(255, 215, 0, 0.12)';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                      autoFocus
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-yellow-300/90 text-xs font-extrabold mb-1.5">ธนาคาร</label>
+                      <select
+                        value={bankName}
+                        onChange={(e) => setBankName(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl text-white font-bold text-base focus:outline-none transition-all"
+                        style={{
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          border: '1px solid rgba(255, 215, 0, 0.12)',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = 'rgba(255, 215, 0, 0.35)';
+                          e.target.style.boxShadow = '0 0 0 3px rgba(255, 215, 0, 0.08)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = 'rgba(255, 215, 0, 0.12)';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      >
+                        <option value="">เลือกธนาคาร</option>
+                        <option value="กสิกรไทย">กสิกรไทย (KBANK)</option>
+                        <option value="ไทยพาณิชย์">ไทยพาณิชย์ (SCB)</option>
+                        <option value="กรุงเทพ">กรุงเทพ (BBL)</option>
+                        <option value="กรุงไทย">กรุงไทย (KTB)</option>
+                        <option value="กรุงศรี">กรุงศรี (BAY)</option>
+                        <option value="ทหารไทยธนชาต">ทหารไทยธนชาต (TTB)</option>
+                        <option value="ออมสิน">ออมสิน (GSB)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-yellow-300/90 text-xs font-extrabold mb-1.5">เลขบัญชี</label>
+                      <input
+                        type="tel"
+                        value={accountNumber}
+                        onChange={(e) => setAccountNumber(e.target.value)}
+                        placeholder="เลขบัญชีธนาคาร"
+                        className="w-full px-4 py-3 rounded-xl text-white font-bold text-base text-center focus:outline-none transition-all"
+                        style={{
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          border: '1px solid rgba(255, 215, 0, 0.12)',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = 'rgba(255, 215, 0, 0.35)';
+                          e.target.style.boxShadow = '0 0 0 3px rgba(255, 215, 0, 0.08)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = 'rgba(255, 215, 0, 0.12)';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setClaiming(true);
+                      const info: PaymentInfo = paymentMethod === 'promptpay'
+                        ? { method: 'promptpay', promptpayNumber }
+                        : { method: 'bank', bankName, accountNumber };
+                      onClaim(info);
+                    }}
+                    disabled={claiming || (paymentMethod === 'promptpay' ? !promptpayNumber : (!bankName || !accountNumber))}
+                    className="flex-1 py-3.5 font-extrabold text-base tracking-wide rounded-xl active:scale-[0.98] transition-all disabled:opacity-40"
+                    style={{
+                      background: 'linear-gradient(135deg, #ffd700 0%, #d4a017 50%, #b8860b 100%)',
+                      color: '#5c0000',
+                      border: '1px solid rgba(255, 215, 0, 0.4)',
+                      boxShadow: '0 4px 20px rgba(255, 215, 0, 0.2)',
+                    }}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      {claiming ? 'กำลังดำเนินการ...' : 'ยืนยันรับเงิน'} <span className="text-lg">💰</span>
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setShowPaymentForm(false)}
+                    disabled={claiming}
+                    className="py-3.5 px-5 rounded-xl font-bold text-sm hover:bg-white/10 transition-colors disabled:opacity-40"
+                    style={{
+                      background: 'rgba(0, 0, 0, 0.25)',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      border: '1px solid rgba(255, 215, 0, 0.1)',
+                    }}
+                  >
+                    กลับ
+                  </button>
+                </div>
+              </div>
+            ) : showDonateForm ? (
               <div className="space-y-4">
                 <div>
                   <label className="block text-yellow-300/90 text-sm font-extrabold mb-2">จำนวนเงินบริจาค (บาท)</label>
@@ -196,7 +360,13 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
             ) : (
               <div className="flex gap-3">
                 <button
-                  onClick={onClaim}
+                  onClick={() => {
+                    if (prize.is_money) {
+                      setShowPaymentForm(true);
+                    } else {
+                      onClaim();
+                    }
+                  }}
                   disabled={donating}
                   className={`${prize.is_donatable ? 'flex-1' : 'w-full'} py-3.5 font-extrabold text-base tracking-wide rounded-xl active:scale-[0.98] transition-all disabled:opacity-40`}
                   style={{

@@ -1,4 +1,4 @@
-import type { Prize, User, SpinHistory, SpinResult, EventSettings } from '../types';
+import type { Prize, User, SpinHistory, SpinResult, EventSettings, PaymentInfo } from '../types';
 
 // Google Apps Script Web App URL
 const SCRIPT_URL = import.meta.env.VITE_SCRIPT_URL || '';
@@ -175,9 +175,9 @@ export function invalidateCache(...actions: string[]): void {
 
 // ===== DEMO DATA =====
 const demoPrizes: Prize[] = [
-  { id: '1', name: 'อั่งเปา 888', description: 'อั่งเปามงคล', image_url: '', probability: 5, quantity: 1, color: '#c41e3a', is_active: true, is_donatable: true },
+  { id: '1', name: 'อั่งเปา 888', description: 'อั่งเปามงคล', image_url: '', probability: 5, quantity: 1, color: '#c41e3a', is_active: true, is_donatable: true, is_money: true },
   { id: '2', name: 'ทองคำ 1 สลึง', description: 'ทองคำแท้', image_url: '', probability: 5, quantity: 2, color: '#ffd700', is_active: true, is_donatable: true },
-  { id: '3', name: 'อั่งเปา 168', description: 'เลขมงคล', image_url: '', probability: 15, quantity: 10, color: '#8b0000', is_active: true, is_donatable: true },
+  { id: '3', name: 'อั่งเปา 168', description: 'เลขมงคล', image_url: '', probability: 15, quantity: 10, color: '#8b0000', is_active: true, is_donatable: true, is_money: true },
   { id: '4', name: 'ส่วนลด 20%', description: 'คูปองส่วนลด', image_url: '', probability: 25, quantity: -1, color: '#daa520', is_active: true, is_donatable: false },
   { id: '5', name: 'ส้มมงคล', description: 'ส้มโชคดี', image_url: '', probability: 25, quantity: -1, color: '#b22222', is_active: true, is_donatable: false },
   { id: '6', name: 'ลองใหม่นะ', description: 'โชคดีครั้งหน้า', image_url: '', probability: 25, quantity: -1, color: '#cd853f', is_active: true, is_donatable: false },
@@ -293,6 +293,28 @@ const demoApi = {
       await delay(300);
       return { success: true, history: demoHistory };
     });
+  },
+
+  async claimPrize(historyId: string, paymentInfo: PaymentInfo): Promise<{ success: boolean; error?: string }> {
+    await delay(300);
+    const entry = demoHistory.find(h => h.id === historyId);
+    if (!entry) {
+      return { success: false, error: 'ไม่พบรายการ' };
+    }
+    entry.payment_info = paymentInfo;
+    invalidateCache('getHistory', 'getAllHistory');
+    return { success: true };
+  },
+
+  async markTransferred(historyId: string): Promise<{ success: boolean; error?: string }> {
+    await delay(300);
+    const entry = demoHistory.find(h => h.id === historyId);
+    if (!entry) {
+      return { success: false, error: 'ไม่พบรายการ' };
+    }
+    entry.status = 'transferred';
+    invalidateCache('getHistory', 'getAllHistory', 'getStats');
+    return { success: true };
   },
 
   async donatePrize(historyId: string, amount: number): Promise<{ success: boolean; error?: string }> {
@@ -450,6 +472,22 @@ const realApi = {
 
   async getAllHistory(): Promise<{ success: boolean; history: SpinHistory[] }> {
     return fetchWithCache('getAllHistory', 'getAllHistory', () => fetchApi('getAllHistory'));
+  },
+
+  async claimPrize(historyId: string, paymentInfo: PaymentInfo): Promise<{ success: boolean; error?: string }> {
+    const result = await fetchApi<{ success: boolean; error?: string }>('claimPrize', {}, 'POST', { historyId, paymentInfo });
+    if (result.success) {
+      invalidateCache('getHistory', 'getAllHistory');
+    }
+    return result;
+  },
+
+  async markTransferred(historyId: string): Promise<{ success: boolean; error?: string }> {
+    const result = await fetchApi<{ success: boolean; error?: string }>('markTransferred', { historyId });
+    if (result.success) {
+      invalidateCache('getHistory', 'getAllHistory', 'getStats');
+    }
+    return result;
   },
 
   async donatePrize(historyId: string, amount: number): Promise<{ success: boolean; error?: string }> {

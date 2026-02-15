@@ -108,7 +108,7 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
     <div className="relative w-[320px] h-[320px] md:w-[400px] md:h-[400px]">
       {/* Dark backdrop circle for contrast */}
       <div
-        className="absolute -inset-20 rounded-full"
+        className="absolute rounded-full -inset-20"
         style={{
           background: 'radial-gradient(circle, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, transparent 75%)',
         }}
@@ -116,14 +116,14 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
 
       {/* Outer glow */}
       <div
-        className="absolute -inset-16 rounded-full animate-glow-pulse"
+        className="absolute rounded-full -inset-16 animate-glow-pulse"
         style={{
           background: 'radial-gradient(circle, rgba(255,215,0,0.4) 0%, rgba(255,215,0,0.2) 30%, rgba(220,20,60,0.12) 50%, transparent 70%)',
         }}
       />
 
       {/* Outer ring - dark with lights */}
-      <div className="absolute -inset-7 rounded-full" style={{
+      <div className="absolute rounded-full -inset-7" style={{
         background: 'linear-gradient(180deg, #3a0a0a 0%, #1a0505 100%)',
         boxShadow: 'inset 0 2px 10px rgba(255,215,0,0.2), 0 8px 50px rgba(0,0,0,0.6), 0 0 80px rgba(255,215,0,0.15)',
       }}>
@@ -158,7 +158,7 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
 
       {/* Gold ring */}
       <div
-        className="absolute -inset-3 rounded-full"
+        className="absolute rounded-full -inset-3"
         style={{
           background: 'linear-gradient(180deg, #ffe44d 0%, #ffd700 25%, #d4a017 60%, #b8860b 100%)',
           boxShadow: '0 2px 40px rgba(255,215,0,0.6), 0 0 80px rgba(255,215,0,0.25)',
@@ -167,7 +167,7 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
 
       {/* Inner red ring */}
       <div
-        className="absolute -inset-1 rounded-full"
+        className="absolute rounded-full -inset-1"
         style={{
           background: 'linear-gradient(180deg, #8b0000 0%, #3a0a0a 100%)',
           boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.5)',
@@ -175,7 +175,7 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
       />
 
       {/* Pointer */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-8 z-20">
+      <div className="absolute top-0 z-20 -translate-x-1/2 -translate-y-8 left-1/2">
         <div style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))' }}>
           <div
             className="w-10 h-14"
@@ -196,7 +196,7 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
 
       {/* Main Wheel */}
       <div
-        className="w-full h-full rounded-full overflow-hidden"
+        className="w-full h-full overflow-hidden rounded-full"
         style={{
           transform: `rotate(${rotation}deg)`,
           transition: transitionStyle,
@@ -239,12 +239,8 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
             const pathD = `M 50 50 L ${x1} ${y1} A 48 48 0 ${largeArc} 1 ${x2} ${y2} Z`;
 
             const midAngle = (startAngle + endAngle) / 2 - 90;
-            const midRad = midAngle * (Math.PI / 180);
-            const textX = 50 + 32 * Math.cos(midRad);
-            const textY = 50 + 32 * Math.sin(midRad);
 
             const colorIdx = index % colorPairs.length;
-            const textColor = colorPairs[colorIdx][1];
 
             return (
               <g key={prize.id}>
@@ -254,19 +250,44 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
                   stroke="rgba(184,134,11,0.5)"
                   strokeWidth="0.4"
                 />
-                <text
-                  x={textX}
-                  y={textY}
-                  fill={textColor}
-                  fontSize="3.8"
-                  fontWeight="800"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  transform={`rotate(${midAngle + 90}, ${textX}, ${textY})`}
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}
-                >
-                  {truncateText(prize.name, 6)}
-                </text>
+
+                {(() => {
+                  const label = truncateText(prize.name, 15);
+
+                  const angleRad = (midAngle * Math.PI) / 180;
+
+                  // ระยะกลาง wedge
+                  const textRadius = 30;
+
+                  const x = 50 + textRadius * Math.cos(angleRad);
+                  const y = 50 + textRadius * Math.sin(angleRad);
+
+                  // ⭐ หมุน 180° ตามแนววงล้อ
+                  let rotation = midAngle + 180;
+
+                  // ⭐ กลับหัวให้ text อ่านได้
+                  if (midAngle > 90 && midAngle < 270) {
+                    rotation += 180;
+                  }
+
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      fill="#2b2b2b"
+                      fontSize="3.6"
+                      fontWeight="700"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      transform={`rotate(${rotation}, ${x}, ${y})`}
+                      style={{
+                        letterSpacing: "-0.35px",
+                      }}
+                    >
+                      {label}
+                    </text>
+                  );
+                })()}
               </g>
             );
           })}
@@ -294,9 +315,9 @@ export function LuckyWheel({ prizes, onSpinEnd, disabled, spinning, targetPrizeI
 
       {/* Disabled overlay */}
       {disabled && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center">
-          <div className="glass-card px-6 py-3 rounded-xl border border-white/20">
-            <span className="text-white/80 font-bold text-sm">หมดสิทธิ์หมุน</span>
+        <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm">
+          <div className="px-6 py-3 border glass-card rounded-xl border-white/20">
+            <span className="text-sm font-bold text-white/80">หมดสิทธิ์หมุน</span>
           </div>
         </div>
       )}

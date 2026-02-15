@@ -8,6 +8,14 @@ export interface Prize {
   color: string;
   is_active: boolean;
   is_donatable: boolean;
+  is_money?: boolean;
+}
+
+export interface PaymentInfo {
+  method: 'bank' | 'promptpay';
+  bankName?: string;
+  accountNumber?: string;
+  promptpayNumber?: string;
 }
 
 export interface User {
@@ -27,8 +35,13 @@ export interface SpinHistory {
   prize_id: string;
   prize_name: string;
   spun_at: string;
-  status: 'claimed' | 'donated';
+  status: 'claimed' | 'donated' | 'transferred';
   donation_amount?: number;
+  payment_info?: PaymentInfo;
+  // Flat fields from GAS
+  payment_method?: string;
+  payment_detail1?: string;
+  payment_detail2?: string;
 }
 
 export interface SpinResult {

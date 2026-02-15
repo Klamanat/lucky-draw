@@ -96,32 +96,17 @@ export function EventSettings() {
         ) : (
           <div className="glass-card rounded-2xl p-6 border border-yellow-500/25">
             <div className="space-y-6">
-              {/* Date Range */}
-              <div>
-                <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
+              {/* Event Date (info only) */}
+              <div className="p-4 rounded-xl" style={{
+                background: 'rgba(255, 180, 50, 0.06)',
+                border: '1px solid rgba(255, 215, 0, 0.1)',
+              }}>
+                <h3 className="text-yellow-400/90 font-extrabold text-sm mb-1 flex items-center gap-2">
                   <ClockIcon className="w-4 h-4 text-yellow-500" />
-                  ช่วงวันที่กิจกรรม
+                  วันจัดกิจกรรม
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-white/90 text-xs font-medium mb-1.5">วันที่เริ่ม</label>
-                    <input
-                      type="date"
-                      value={settings.startDate}
-                      onChange={(e) => setSettings({ ...settings, startDate: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white/90 text-xs font-medium mb-1.5">วันที่สิ้นสุด</label>
-                    <input
-                      type="date"
-                      value={settings.endDate}
-                      onChange={(e) => setSettings({ ...settings, endDate: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
+                <p className="text-white font-extrabold text-lg ml-6">17 กุมภาพันธ์ 2569</p>
+                <p className="text-white/50 text-xs ml-6 mt-0.5">* แก้ไขวันได้ที่ไฟล์ Home.tsx และ InfoPopup.tsx</p>
               </div>
 
               {/* Time Range */}
