@@ -135,10 +135,10 @@ export function Home() {
   // Loading state
   if (authLoading || prizesLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="glass-card rounded-2xl px-12 py-10 flex flex-col items-center gap-5 border border-yellow-500/20">
-          <div className="w-14 h-14 border-3 border-yellow-500/30 border-t-yellow-400 rounded-full animate-spin" style={{ borderWidth: '3px' }} />
-          <p className="text-white font-medium tracking-wide">กำลังโหลด...</p>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-5 px-12 py-10 border glass-card rounded-2xl border-yellow-500/20">
+          <div className="rounded-full w-14 h-14 border-3 border-yellow-500/30 border-t-yellow-400 animate-spin" style={{ borderWidth: '3px' }} />
+          <p className="font-medium tracking-wide text-white">กำลังโหลด...</p>
         </div>
       </div>
     );
@@ -147,21 +147,18 @@ export function Home() {
   // Not logged in
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 py-16 relative">
+      <div className="relative flex flex-col items-center justify-center min-h-screen p-4 py-16">
         {isDemoMode && (
           <div className="fixed top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20 z-40">
-            <span className="text-yellow-300 text-xs font-medium tracking-wide">Demo Mode</span>
+            <span className="text-xs font-medium tracking-wide text-yellow-300">Demo Mode</span>
           </div>
         )}
 
-        <div className="text-center mb-10 relative z-10">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg shadow-red-500/25 border border-yellow-500/30">
-            <span className="text-3xl">🧧</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
-            <span className="gold-shimmer">กิจกรรมหมุนวงล้อ</span>
+        <div className="relative z-10 mb-10 text-center">
+          <h1 className="mb-3 text-4xl font-bold tracking-tight md:text-5xl">
+            <span className="gold-shimmer">Digital Angpao Hunt</span>
           </h1>
-          <p className="text-white/90 text-base font-medium">ลุ้นรับอั่งเปาและของรางวัลมากมาย</p>
+          <p className="text-base font-medium text-white/90">ดวงดีได้เงิน ดวงเฮงได้คำอวยพร จากพี่มะนาว และ พี่นิโคล</p>
         </div>
 
         <EmployeeForm
@@ -171,11 +168,11 @@ export function Home() {
         />
 
         {isDemoMode && (
-          <div className="mt-8 text-center space-y-3 relative z-10">
+          <div className="relative z-10 mt-8 space-y-3 text-center">
             {getAllowedEmployees().length > 0 && (
-              <div className="glass-card-dark rounded-xl px-5 py-3 inline-block">
+              <div className="inline-block px-5 py-3 glass-card-dark rounded-xl">
                 <p className="text-white/70 text-xs mb-1.5 font-medium">รหัสพนักงานที่มีสิทธิ์</p>
-                <p className="text-white/70 text-sm font-mono tracking-wider">
+                <p className="font-mono text-sm tracking-wider text-white/70">
                   {getAllowedEmployees().slice(0, 5).join(', ')}
                   {getAllowedEmployees().length > 5 && (
                     <span className="text-white/60"> (+{getAllowedEmployees().length - 5})</span>
@@ -183,7 +180,7 @@ export function Home() {
                 </p>
               </div>
             )}
-            <p className="text-white/50 text-xs tracking-wide">
+            <p className="text-xs tracking-wide text-white/50">
               Admin: กรอกรหัส admin1234
             </p>
           </div>
@@ -198,19 +195,19 @@ export function Home() {
 
   // Logged in
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 py-16 relative">
+    <div className="relative flex flex-col items-center justify-center min-h-screen p-4 py-16">
       {isDemoMode && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20 z-40">
-          <span className="text-yellow-300 text-xs font-medium tracking-wide">Demo Mode</span>
+          <span className="text-xs font-medium tracking-wide text-yellow-300">Demo Mode</span>
         </div>
       )}
 
       {/* Header */}
-      <div className="w-full max-w-lg flex justify-between items-center mb-8 relative z-10">
-        <div className="glass-card rounded-xl px-5 py-3 border border-yellow-500/25">
+      <div className="relative z-10 flex items-center justify-between w-full max-w-lg mb-8">
+        <div className="px-5 py-3 border glass-card rounded-xl border-yellow-500/25">
           <p className="text-yellow-400 text-xs font-medium mb-0.5">ผู้เข้าร่วม</p>
-          <p className="text-white font-bold text-base">{user?.name}</p>
-          <p className="text-yellow-400/80 text-xs font-mono">{user?.employee_id}</p>
+          <p className="text-base font-bold text-white">{user?.name}</p>
+          <p className="font-mono text-xs text-yellow-400/80">{user?.employee_id}</p>
         </div>
 
         <div className="flex gap-2">
@@ -240,11 +237,11 @@ export function Home() {
       </div>
 
       {/* Title */}
-      <div className="text-center mb-10 relative z-10">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+      <div className="relative z-10 mb-10 text-center">
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
           <span className="gold-shimmer">หมุนวงล้อรับโชค</span>
         </h1>
-        <div className="divider-gold w-24 mx-auto mt-3" />
+        <div className="w-24 mx-auto mt-3 divider-gold" />
       </div>
 
       {/* Wheel */}
@@ -258,7 +255,7 @@ export function Home() {
             disabled={!user || user.spins_remaining <= 0}
           />
 
-          <div className="mt-10 relative z-10">
+          <div className="relative z-10 mt-10">
             <SpinButton
               onClick={handleSpin}
               spinning={spinning || !!targetPrizeId}
@@ -268,12 +265,12 @@ export function Home() {
           </div>
         </>
       ) : (
-        <div className="glass-card rounded-2xl p-10 text-center border border-yellow-500/25">
-          <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-red-500/20 flex items-center justify-center">
+        <div className="p-10 text-center border glass-card rounded-2xl border-yellow-500/25">
+          <div className="flex items-center justify-center mx-auto mb-4 w-14 h-14 rounded-xl bg-red-500/20">
             <span className="text-2xl">🎁</span>
           </div>
-          <p className="text-white font-bold text-lg">ยังไม่มีรางวัลในระบบ</p>
-          <p className="text-white/80 text-sm mt-2">กรุณาติดต่อผู้ดูแลระบบ</p>
+          <p className="text-lg font-bold text-white">ยังไม่มีรางวัลในระบบ</p>
+          <p className="mt-2 text-sm text-white/80">กรุณาติดต่อผู้ดูแลระบบ</p>
         </div>
       )}
 

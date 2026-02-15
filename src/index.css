@@ -338,3 +338,121 @@ body {
   background: rgba(255, 215, 0, 0.2);
   color: #fff;
 }
+
+/* ===== Bounce Popup ===== */
+@keyframes bounceIn {
+  0% { transform: scale(.7); opacity: 0; }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-bounce-in {
+  animation: bounceIn .5s ease;
+}
+
+/* ===== Wheel Spin ===== */
+.wheel-spin {
+  animation: wheelSpin 6s linear infinite;
+}
+@keyframes wheelSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Lantern Swing ===== */
+.lantern {
+  position: absolute;
+  top: -10px;
+  width: 60px;
+  transform-origin: top center;
+  animation: swing 3s ease-in-out infinite;
+}
+.lantern-left { left: 10px; }
+.lantern-right { right: 10px; animation-delay: 1.5s; }
+
+@keyframes swing {
+  0% { transform: rotate(6deg); }
+  50% { transform: rotate(-6deg); }
+  100% { transform: rotate(6deg); }
+}
+
+/* ===== Clouds ===== */
+.cloud {
+  position: absolute;
+  width: 120px;
+  opacity: .9;
+}
+.cloud-left {
+  bottom: 80px;
+  left: -20px;
+  animation: cloudMove 18s linear infinite;
+}
+.cloud-right {
+  bottom: 40px;
+  right: -30px;
+  animation: cloudMove 22s linear infinite reverse;
+}
+@keyframes cloudMove {
+  from { transform: translateX(0); }
+  to { transform: translateX(40px); }
+}
+
+/* ===== Coins Falling ===== */
+.coins span {
+  position: absolute;
+  font-size: 18px;
+  animation: coinFall 6s linear infinite;
+}
+.coins span:nth-child(1){ left:10%; animation-delay:0s; }
+.coins span:nth-child(2){ left:30%; animation-delay:1s; }
+.coins span:nth-child(3){ left:50%; animation-delay:2s; }
+.coins span:nth-child(4){ left:70%; animation-delay:3s; }
+.coins span:nth-child(5){ left:90%; animation-delay:4s; }
+
+@keyframes coinFall {
+  0% { top:-10%; opacity:0; transform:rotate(0); }
+  10% { opacity:1; }
+  100% { top:110%; opacity:0; transform:rotate(360deg); }
+}
+
+/* ===== Horse Bounce ===== */
+.horse-bounce {
+  animation: horseBounce 2s ease-in-out infinite;
+}
+@keyframes horseBounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* ===== Glitter ===== */
+.glitter-layer {
+  position:absolute;
+  inset:0;
+  background-image:
+    radial-gradient(#ffd700 1px,transparent 1px);
+  background-size:140px 140px;
+  opacity:.25;
+  animation: glitterMove 20s linear infinite;
+}
+@keyframes glitterMove {
+  from { transform:translateY(0); }
+  to { transform:translateY(-140px); }
+}
+
+/* ===== Firework ===== */
+.spark {
+  position:absolute;
+  width:6px;
+  height:6px;
+  background:gold;
+  border-radius:50%;
+  animation: firework 3s infinite;
+}
+.s1{ top:20%; left:20%; }
+.s2{ top:35%; right:25%; animation-delay:1s; }
+.s3{ bottom:30%; left:50%; animation-delay:2s; }
+
+@keyframes firework {
+  0%{ transform:scale(.2); opacity:0; }
+  40%{ opacity:1; box-shadow:0 0 20px gold; }
+  100%{ transform:scale(2); opacity:0; }
+}
