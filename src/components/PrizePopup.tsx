@@ -132,15 +132,15 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                 <div className="w-40 mx-auto overflow-hidden border-2 shadow-lg rounded-2xl border-yellow-500/20"
                   style={{
                     boxShadow: '0 8px 24px rgba(200, 30, 50, 0.2)',
-                    height: blessingImage === '/S__35012639.png' ? 'auto' : blessingImage === '/S__35020802.png' ? '200px' : '160px',
+                    height: blessingImage === '/S__35012639.png' ? 'auto' : '220px',
                   }}>
                   <img
                     src={blessingImage}
                     alt=""
                     className={blessingImage === '/S__35012639.png'
                       ? 'object-contain w-full'
-                      : 'object-cover object-top w-full h-full'}
-                    style={blessingImage !== '/S__35012639.png' ? { transform: 'scale(1.5)', transformOrigin: 'top center' } : undefined}
+                      : 'w-full h-full'}
+                    style={blessingImage !== '/S__35012639.png' ? { objectFit: 'cover', objectPosition: 'top center', transform: blessingImage === '/S__35012641.png' ? 'scale(2.2)' : 'scale(3.2)', transformOrigin: 'top center', marginTop: blessingImage === '/S__35012641.png' ? '0px' : '-95px' } : undefined}
                   />
                 </div>
               ) : (
