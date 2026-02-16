@@ -168,7 +168,7 @@ export function Home() {
           style={{ objectFit: 'contain' }}
         />
         <div
-          className="absolute bottom-0 right-[-100px] hidden pointer-events-none select-none md:block md:w-[1400px] h-[900px] overflow-hidden"
+          className="absolute bottom-0 right-[-150px] hidden pointer-events-none select-none md:block md:w-[1300px] h-[900px] overflow-hidden"
         >
           <img
             src="/S__35020802.png"
