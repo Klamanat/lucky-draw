@@ -170,7 +170,7 @@ export function Home() {
           <h1 className="mb-3 text-4xl font-bold tracking-tight md:text-5xl">
             <span className="gold-shimmer">Digital Angpao Hunt</span>
           </h1>
-          <p className="text-base font-medium text-white/90">ดวงดีได้เงิน ดวงเฮงได้คำอวยพร จากพี่มะนาว และ พี่นิโคล</p>
+          <p className="text-base font-medium text-white/90">ดวงดีได้เงิน ดวงเฮงได้คำอวยพร จากพี่มะนาว พี่นิโคล และพี่ตั้ม</p>
         </div>
 
         <EmployeeForm
@@ -215,14 +215,14 @@ export function Home() {
       )}
 
       {/* Header */}
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 w-full max-w-lg mb-6">
+      <div className="relative z-10 flex flex-wrap items-center justify-between w-full max-w-lg gap-3 mb-6">
         <div className="relative px-4 py-2.5 sm:px-5 sm:py-3 overflow-hidden rounded-xl" style={{
           background: 'linear-gradient(135deg, rgba(139,26,43,0.6) 0%, rgba(92,10,21,0.5) 100%)',
           border: '1px solid rgba(255, 215, 0, 0.15)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
         }}>
           <p className="text-yellow-400 text-xs font-extrabold mb-0.5">ผู้เข้าร่วม</p>
-          <p className="text-base sm:text-lg font-extrabold text-white">{user?.name}</p>
+          <p className="text-base font-extrabold text-white sm:text-lg">{user?.name}</p>
           <p className="font-mono text-xs font-bold text-yellow-400/70">{user?.employee_id}</p>
         </div>
 
