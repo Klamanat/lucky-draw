@@ -164,11 +164,12 @@ export function Home() {
         <img
           src="/S__35012639.png"
           alt=""
-          className="absolute bottom-0 right-[0%] hidden pointer-events-none select-none md:block md:w-[500px]"
-          style={{ objectFit: 'contain' }}
+          className="absolute bottom-0 right-0 hidden pointer-events-none select-none md:block"
+          style={{ objectFit: 'contain', width: 'clamp(120px, 26vw, 800px)' }}
         />
         <div
-          className="absolute bottom-0 right-[-150px] hidden pointer-events-none select-none md:block md:w-[1300px] h-[900px] overflow-hidden"
+          className="absolute bottom-0 hidden overflow-hidden pointer-events-none select-none md:block"
+          style={{ right: 'clamp(-150px, -4vw, 0px)', width: 'clamp(400px, 60vw, 2000px)', height: 'clamp(280px, 44vw, 1400px)' }}
         >
           <img
             src="/S__35020802.png"
@@ -181,8 +182,8 @@ export function Home() {
         <img
           src="/S__35012641.png"
           alt=""
-          className="absolute bottom-0 left-[5%] hidden pointer-events-none select-none md:block md:w-[750px]"
-          style={{ objectFit: 'contain' }}
+          className="absolute bottom-0 hidden pointer-events-none select-none md:block"
+          style={{ objectFit: 'contain', left: '2%', width: 'clamp(200px, 38vw, 1200px)' }}
         />
 
         {isDemoMode && (
