@@ -196,11 +196,12 @@ export function Home() {
           </div>
         )}
 
-        <div className="relative z-10 mb-10 text-center">
+        <div className="relative z-10 mb-6 text-center">
           <h1 className="mb-3 text-4xl font-bold tracking-tight md:text-5xl">
             <span className="gold-shimmer">Digital Angpao Hunt</span>
           </h1>
-          <p className="text-base font-medium text-white/90">ดวงดีได้เงิน ดวงเฮงได้คำอวยพร จากพี่มะนาว พี่นิโคล และพี่ตั้ม</p>
+          <p className="text-base font-medium text-white/90">ดวงดีได้เงิน ดวงเฮงได้คำอวยพร</p>
+          <p className="text-base font-medium text-white/90">จากพี่มะนาว พี่นิโคล และพี่ตั้ม</p>
         </div>
 
         {/* Mobile: 3 images above form */}
