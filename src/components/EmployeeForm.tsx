@@ -74,7 +74,7 @@ export function EmployeeForm({ onSubmit, onAdminLogin, loading }: EmployeeFormPr
         {/* ================= Content ================= */}
         <div className="relative z-10 p-8">
           <div className="mb-8 text-center">
-            <div className="flex items-center justify-center mx-auto mb-4 w-16 h-16 rounded-2xl shadow-lg border border-yellow-500/20" style={{
+            <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 border shadow-lg rounded-2xl border-yellow-500/20" style={{
               background: 'linear-gradient(135deg, rgba(200, 30, 50, 0.4) 0%, rgba(140, 20, 40, 0.3) 100%)',
               backdropFilter: 'blur(12px)',
               boxShadow: '0 8px 24px rgba(200, 30, 50, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',

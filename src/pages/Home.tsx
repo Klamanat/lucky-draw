@@ -159,7 +159,32 @@ export function Home() {
   // Not logged in
   if (!isLoggedIn) {
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-screen p-4 py-16">
+      <div className="relative flex flex-col items-center justify-center min-h-screen p-4 py-16 overflow-hidden">
+        {/* Background images bottom-right */}
+        <img
+          src="/S__35012639.png"
+          alt=""
+          className="absolute bottom-0 right-[0%] hidden pointer-events-none select-none md:block md:w-[500px]"
+          style={{ objectFit: 'contain' }}
+        />
+        <div
+          className="absolute bottom-0 right-[-100px] hidden pointer-events-none select-none md:block md:w-[1400px] h-[900px] overflow-hidden"
+        >
+          <img
+            src="/S__35020802.png"
+            alt=""
+            className="w-full"
+            style={{ objectFit: 'cover', objectPosition: 'top', transform: 'scaleX(-1)' }}
+          />
+        </div>
+        {/* Background image bottom-left */}
+        <img
+          src="/S__35012641.png"
+          alt=""
+          className="absolute bottom-0 left-[5%] hidden pointer-events-none select-none md:block md:w-[750px]"
+          style={{ objectFit: 'contain' }}
+        />
+
         {isDemoMode && (
           <div className="fixed top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20 z-40">
             <span className="text-xs font-medium tracking-wide text-yellow-300">Demo Mode</span>

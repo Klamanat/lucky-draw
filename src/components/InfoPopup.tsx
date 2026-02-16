@@ -92,11 +92,16 @@ export function InfoPopup({ onClose, eventSettings }: InfoPopupProps) {
             </h1>
 
             <p className="mt-2 text-base font-bold text-white/80">
-              หมุนปั๊บ รับทรัพย์ อั่งเปารวมกว่า 8,000 บาท
+              หมุนปั๊บ รับทรัพย์ อั่งเปารวมกว่า 9,000 บาท
             </p>
 
             {/* Divider */}
             <div className="w-20 mx-auto my-5 divider-gold" />
+
+            {/* วิธีเล่น */}
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <p className="text-xl font-extrabold text-yellow-400/90">ขั้นตอนเข้าร่วมกิจกรรม</p>
+            </div>
 
             {/* Steps */}
             <div className="p-3 mb-4 rounded-xl" style={{
