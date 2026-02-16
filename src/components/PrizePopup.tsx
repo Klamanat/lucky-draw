@@ -18,9 +18,23 @@ interface Confetti {
   shape: 'circle' | 'square' | 'star';
 }
 
+const BLESSING_IMAGES = ['/S__35012641.png', '/S__35020802.png', '/S__35012639.png'];
+
+function isBlessing(prize: Prize): boolean {
+  // เป็นคำอวยพร = ไม่ใช่เงิน, ไม่มีภาษาอังกฤษ, ไม่ใช่ donatable
+  // ตัวเลขปี พ.ศ. (25xx) ไม่นับเป็นมูลค่า
+  if (prize.is_money || prize.is_donatable) return false;
+  if (/[a-zA-Z]/.test(prize.name)) return false;
+  const nameWithoutYear = prize.name.replace(/25\d{2}/g, '');
+  if (extractPrizeValue(nameWithoutYear)) return false;
+  return true;
+}
+
 export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupProps) {
   const [confetti, setConfetti] = useState<Confetti[]>([]);
   const [showDonateForm, setShowDonateForm] = useState(false);
+  const [blessingImage] = useState(() => BLESSING_IMAGES[Math.floor(Math.random() * BLESSING_IMAGES.length)]);
+  const prizeIsBlessing = isBlessing(prize);
   const [donateAmount, setDonateAmount] = useState('');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentMode, setPaymentMode] = useState<'claim' | 'donate'>('claim');
@@ -114,20 +128,41 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
           {/* Content */}
           <div className="relative z-10 p-8 text-center">
             <div className="mt-1 mb-5">
-              <div className="flex items-center justify-center w-20 h-20 mx-auto border shadow-lg rounded-2xl border-yellow-500/20" style={{
-                background: 'linear-gradient(135deg, rgba(200, 30, 50, 0.4) 0%, rgba(140, 20, 40, 0.3) 100%)',
-                backdropFilter: 'blur(12px)',
-                boxShadow: '0 8px 24px rgba(200, 30, 50, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-              }}>
-                <span className="text-4xl">🧧</span>
-              </div>
+              {prizeIsBlessing ? (
+                <div className="w-40 mx-auto overflow-hidden border-2 shadow-lg rounded-2xl border-yellow-500/20"
+                  style={{
+                    boxShadow: '0 8px 24px rgba(200, 30, 50, 0.2)',
+                    height: blessingImage === '/S__35012639.png' ? 'auto' : blessingImage === '/S__35020802.png' ? '200px' : '160px',
+                  }}>
+                  <img
+                    src={blessingImage}
+                    alt=""
+                    className={blessingImage === '/S__35012639.png'
+                      ? 'object-contain w-full'
+                      : 'object-cover object-top w-full h-full'}
+                    style={blessingImage !== '/S__35012639.png' ? { transform: 'scale(1.5)', transformOrigin: 'top center' } : undefined}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center w-20 h-20 mx-auto border shadow-lg rounded-2xl border-yellow-500/20" style={{
+                  background: 'linear-gradient(135deg, rgba(200, 30, 50, 0.4) 0%, rgba(140, 20, 40, 0.3) 100%)',
+                  backdropFilter: 'blur(12px)',
+                  boxShadow: '0 8px 24px rgba(200, 30, 50, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                }}>
+                  <span className="text-4xl">🧧</span>
+                </div>
+              )}
             </div>
 
             <h2 className="mb-1 text-3xl font-extrabold">
               <span className="gold-shimmer">恭喜發財</span>
             </h2>
-            <p className="text-xl font-extrabold text-white">ยินดีด้วย!</p>
-            <p className="mt-1 text-sm font-bold text-white/70">คุณได้รับรางวัล</p>
+            {!prizeIsBlessing && (
+              <>
+                <p className="text-xl font-extrabold text-white">ยินดีด้วย!</p>
+                <p className="mt-1 text-sm font-bold text-white/70">คุณได้รับรางวัล</p>
+              </>
+            )}
 
             <div className="w-20 mx-auto my-5 divider-gold" />
 
@@ -346,9 +381,9 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                 <div className="relative p-3 mb-3 overflow-hidden bg-white rounded-2xl">
                   <div className="absolute inset-0 bg-gradient-to-r from-pink-200/50 via-white to-pink-200/50 animate-pulse" />
                   <div className="relative flex justify-center gap-2">
-                    <img src="/S__35037232.jpg" alt="" className="object-cover flex-1 h-24 min-w-0 transition-transform duration-300 border-2 shadow-md rounded-xl border-pink-400/40 hover:scale-105 hover:shadow-pink-400/30" />
-                    <img src="/S__35037230_0.png" alt="" className="object-cover flex-1 h-24 min-w-0 transition-transform duration-300 border-2 shadow-md rounded-xl border-pink-400/40 hover:scale-105 hover:shadow-pink-400/30" />
-                    <img src="/S__35037229_0.jpg" alt="" className="object-cover flex-1 h-24 min-w-0 transition-transform duration-300 border-2 shadow-md rounded-xl border-pink-400/40 hover:scale-105 hover:shadow-pink-400/30" />
+                    <img src="/S__35037232.jpg" alt="" className="flex-1 object-cover h-24 min-w-0 transition-transform duration-300 border-2 shadow-md rounded-xl border-pink-400/40 hover:scale-105 hover:shadow-pink-400/30" />
+                    <img src="/S__35037230_0.png" alt="" className="flex-1 object-cover h-24 min-w-0 transition-transform duration-300 border-2 shadow-md rounded-xl border-pink-400/40 hover:scale-105 hover:shadow-pink-400/30" />
+                    <img src="/S__35037229_0.jpg" alt="" className="flex-1 object-cover h-24 min-w-0 transition-transform duration-300 border-2 shadow-md rounded-xl border-pink-400/40 hover:scale-105 hover:shadow-pink-400/30" />
                   </div>
                 </div>
                 <div className="p-4 text-left rounded-xl" style={{
@@ -383,7 +418,7 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                     border: '1px solid rgba(255, 215, 0, 0.1)',
                   }}
                 >
-                  ไม่บริจาค — รับรางวัล
+                  {prizeIsBlessing ? 'ไม่บริจาค — รับคำอวยพร' : 'ไม่บริจาค — รับอั่งเปา'}
                 </button>
               </div>
             ) : showDonateForm ? (
@@ -512,7 +547,7 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                 }}
               >
                 <span className="flex items-center justify-center gap-2">
-                  รับอั่งเปา <span className="text-lg">🧧</span>
+                  {prizeIsBlessing ? (<>รับคำอวยพร <span className="text-lg">🙏</span></>) : (<>รับอั่งเปา <span className="text-lg">🧧</span></>)}
                 </span>
               </button>
             )}
