@@ -225,6 +225,7 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                       value={promptpayNumber}
                       onChange={(e) => setPromptpayNumber(e.target.value)}
                       placeholder="เบอร์โทรหรือเลขบัตรประชาชน"
+                      required
                       className="w-full px-4 py-3 text-base font-bold text-center text-white transition-all rounded-xl focus:outline-none"
                       style={{
                         background: 'rgba(0, 0, 0, 0.3)',
@@ -262,7 +263,7 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                           e.target.style.boxShadow = 'none';
                         }}
                       >
-                        <option value="">เลือกธนาคาร</option>
+                        <option value="" disabled>เลือกธนาคาร</option>
                         <option value="กสิกรไทย">กสิกรไทย (KBANK)</option>
                         <option value="ไทยพาณิชย์">ไทยพาณิชย์ (SCB)</option>
                         <option value="กรุงเทพ">กรุงเทพ (BBL)</option>
@@ -279,6 +280,7 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
                         value={accountNumber}
                         onChange={(e) => setAccountNumber(e.target.value)}
                         placeholder="เลขบัญชีธนาคาร"
+                        required
                         className="w-full px-4 py-3 text-base font-bold text-center text-white transition-all rounded-xl focus:outline-none"
                         style={{
                           background: 'rgba(0, 0, 0, 0.3)',
