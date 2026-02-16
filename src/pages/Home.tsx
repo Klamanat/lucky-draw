@@ -205,11 +205,11 @@ export function Home() {
 
         {/* Mobile: 3 images above form */}
         <div className="relative z-10 flex items-end justify-center w-full max-w-md mb-[-10px] overflow-hidden pointer-events-none select-none md:hidden">
-          <div className="w-[30%] overflow-hidden h-[20vw] flex-shrink-0 mr-1">
-            <img src="/S__35012641.png" alt="" className="object-cover object-top w-full h-full" style={{ transform: 'scale(1.1)', transformOrigin: 'top center' }} />
+          <div className="w-[24%] overflow-hidden h-[20vw] flex-shrink-0 mr-1">
+            <img src="/S__35012641.png" alt="" className="object-cover object-top w-full h-full" style={{ transform: 'scale(2)', transformOrigin: 'top center' }} />
           </div>
-          <div className="w-[30%] overflow-hidden h-[24vw] flex-shrink-0">
-            <img src="/S__35020802.png" alt="" className="object-cover object-top w-full h-full" style={{ transform: 'scaleX(-1)', transformOrigin: 'top center' }} />
+          <div className="w-[24%] overflow-hidden h-[28vw] flex-shrink-0">
+            <img src="/S__35020802.png" alt="" className="object-cover object-top w-full h-full" style={{ transform: 'scaleX(-1) scale(2)', transformOrigin: 'top center' }} />
           </div>
           <div className="w-[18%] overflow-hidden h-[20vw] flex-shrink-0 ml-1">
             <img src="/S__35012639.png" alt="" className="object-cover object-top w-full h-full" />
