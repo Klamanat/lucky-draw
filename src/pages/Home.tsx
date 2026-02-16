@@ -160,7 +160,7 @@ export function Home() {
   if (!isLoggedIn) {
     return (
       <div className="relative flex flex-col items-center justify-center min-h-screen p-4 py-16 overflow-hidden">
-        {/* Background images bottom-right */}
+        {/* Desktop: absolute positioned */}
         <img
           src="/S__35012639.png"
           alt=""
@@ -178,13 +178,17 @@ export function Home() {
             style={{ objectFit: 'cover', objectPosition: 'top', transform: 'scaleX(-1)' }}
           />
         </div>
-        {/* Background image bottom-left */}
-        <img
-          src="/S__35012641.png"
-          alt=""
-          className="absolute bottom-0 hidden pointer-events-none select-none md:block"
-          style={{ objectFit: 'contain', left: '2%', width: 'clamp(200px, 38vw, 1200px)' }}
-        />
+        <div
+          className="absolute bottom-0 hidden overflow-hidden pointer-events-none select-none md:block"
+          style={{ left: '2%', width: 'clamp(300px, 50vw, 1500px)', height: 'clamp(240px, 38vw, 1100px)' }}
+        >
+          <img
+            src="/S__35012641.png"
+            alt=""
+            className="w-full"
+            style={{ objectFit: 'cover', objectPosition: 'top' }}
+          />
+        </div>
 
         {isDemoMode && (
           <div className="fixed top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20 z-40">
@@ -199,11 +203,26 @@ export function Home() {
           <p className="text-base font-medium text-white/90">ดวงดีได้เงิน ดวงเฮงได้คำอวยพร จากพี่มะนาว พี่นิโคล และพี่ตั้ม</p>
         </div>
 
-        <EmployeeForm
-          onSubmit={enterAsEmployee}
-          onAdminLogin={loginAdmin}
-          loading={authLoading}
-        />
+        {/* Mobile: 3 images above form */}
+        <div className="relative z-10 flex items-end justify-center w-full max-w-md mb-[-10px] overflow-hidden pointer-events-none select-none md:hidden">
+          <div className="w-[30%] overflow-hidden h-[20vw] flex-shrink-0 mr-1">
+            <img src="/S__35012641.png" alt="" className="object-cover object-top w-full h-full" style={{ transform: 'scale(1.1)', transformOrigin: 'top center' }} />
+          </div>
+          <div className="w-[30%] overflow-hidden h-[24vw] flex-shrink-0">
+            <img src="/S__35020802.png" alt="" className="object-cover object-top w-full h-full" style={{ transform: 'scaleX(-1)', transformOrigin: 'top center' }} />
+          </div>
+          <div className="w-[18%] overflow-hidden h-[20vw] flex-shrink-0 ml-1">
+            <img src="/S__35012639.png" alt="" className="object-cover object-top w-full h-full" />
+          </div>
+        </div>
+
+        <div className="relative z-10">
+          <EmployeeForm
+            onSubmit={enterAsEmployee}
+            onAdminLogin={loginAdmin}
+            loading={authLoading}
+          />
+        </div>
 
         {isDemoMode && (
           <div className="relative z-10 mt-8 space-y-3 text-center">

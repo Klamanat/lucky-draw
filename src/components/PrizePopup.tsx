@@ -343,6 +343,14 @@ export function PrizePopup({ prize, onClaim, onDonate, donating }: PrizePopupPro
             ) : prize.is_donatable && !showDonateForm ? (
               /* Donate confirmation - ถามก่อนรับรางวัลเสมอ */
               <div className="space-y-3">
+                <div className="relative p-3 mb-3 overflow-hidden bg-white rounded-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-r from-pink-200/50 via-white to-pink-200/50 animate-pulse" />
+                  <div className="relative flex justify-center gap-2">
+                    <img src="/S__35037232.jpg" alt="" className="object-cover flex-1 h-24 min-w-0 transition-transform duration-300 border-2 shadow-md rounded-xl border-pink-400/40 hover:scale-105 hover:shadow-pink-400/30" />
+                    <img src="/S__35037230_0.png" alt="" className="object-cover flex-1 h-24 min-w-0 transition-transform duration-300 border-2 shadow-md rounded-xl border-pink-400/40 hover:scale-105 hover:shadow-pink-400/30" />
+                    <img src="/S__35037229_0.jpg" alt="" className="object-cover flex-1 h-24 min-w-0 transition-transform duration-300 border-2 shadow-md rounded-xl border-pink-400/40 hover:scale-105 hover:shadow-pink-400/30" />
+                  </div>
+                </div>
                 <div className="p-4 text-left rounded-xl" style={{
                   background: 'rgba(236, 72, 153, 0.08)',
                   border: '1px solid rgba(236, 72, 153, 0.15)',
