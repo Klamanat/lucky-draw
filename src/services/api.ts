@@ -192,7 +192,7 @@ let demoNextUserId = 1;
 
 // Weighted random selection
 function selectPrize(prizes: Prize[]): Prize {
-  const available = prizes.filter(p => p.quantity !== 0);
+  const available = prizes.filter(p => p.quantity >= 1);
   const totalWeight = available.reduce((sum, p) => sum + p.probability, 0);
   let random = Math.random() * totalWeight;
 

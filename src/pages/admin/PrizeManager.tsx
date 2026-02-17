@@ -90,7 +90,7 @@ export function PrizeManager() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setEditingPrize({ name: '', probability: 10, quantity: -1, color: DEFAULT_COLORS[prizes.length % DEFAULT_COLORS.length], is_active: true, is_donatable: true, is_money: false })}
+              onClick={() => setEditingPrize({ name: '', probability: 10, quantity: 1, color: DEFAULT_COLORS[prizes.length % DEFAULT_COLORS.length], is_active: true, is_donatable: true, is_money: false })}
               className="px-5 py-2.5 btn-gold rounded-xl font-bold flex items-center gap-2 text-sm"
             >
               <PlusIcon className="w-4 h-4" /> เพิ่มรางวัล
@@ -144,7 +144,7 @@ export function PrizeManager() {
                       <ChartIcon className="w-3 h-3" /> <span className="font-medium text-white/90">{prize.probability}%</span>
                     </span>
                     <span className="flex items-center gap-1 text-white/90">
-                      <PackageIcon className="w-3 h-3" /> <span className="font-medium text-white/90">{prize.quantity === -1 ? 'ไม่จำกัด' : prize.quantity}</span>
+                      <PackageIcon className="w-3 h-3" /> <span className="font-medium text-white/90">{prize.quantity < 1 ? <span className="text-red-400">หมด</span> : prize.quantity}</span>
                     </span>
                   </div>
                 </div>
@@ -246,10 +246,10 @@ export function PrizeManager() {
                     <label className="block text-sm font-medium text-white/90 mb-1.5">จำนวน</label>
                     <input
                       type="number"
-                      min="-1"
-                      value={editingPrize.quantity ?? -1}
-                      onChange={(e) => setEditingPrize({ ...editingPrize, quantity: parseInt(e.target.value) })}
-                      placeholder="-1 = ไม่จำกัด"
+                      min="0"
+                      value={editingPrize.quantity ?? 1}
+                      onChange={(e) => setEditingPrize({ ...editingPrize, quantity: parseInt(e.target.value) || 0 })}
+                      placeholder="0 = หมด"
                       className="w-full px-4 py-3 rounded-xl bg-black/30 border border-yellow-500/25 text-white font-medium focus:border-yellow-500/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
                     />
                   </div>
