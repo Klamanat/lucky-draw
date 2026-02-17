@@ -382,7 +382,7 @@ function getPrizes() {
         description: row[2] || '',
         image_url: row[3] || '',
         probability: parseFloat(row[4]) || 0,
-        quantity: parseInt(row[5]) || -1,
+        quantity: parseInt(row[5]) || 0,
         is_active: row[6],
         color: row[7] || '#3b82f6',
         is_donatable: row[8] !== false,
@@ -412,7 +412,7 @@ function readPrizesFromSheet(prizeSheet) {
         description: row[2] || '',
         image_url: row[3] || '',
         probability: parseFloat(row[4]) || 0,
-        quantity: parseInt(row[5]) || -1,
+        quantity: parseInt(row[5]) || 0,
         is_active: row[6],
         color: row[7] || '#3b82f6',
         is_donatable: row[8] !== false,
@@ -437,7 +437,7 @@ function addPrize(prizeData) {
     prizeData.description || '',
     prizeData.image_url || '',
     prizeData.probability || 10,
-    prizeData.quantity !== undefined ? prizeData.quantity : -1,
+    prizeData.quantity !== undefined ? prizeData.quantity : 1,
     prizeData.is_active !== false,
     prizeData.color || '#3b82f6',
     prizeData.is_donatable !== false,
@@ -445,7 +445,7 @@ function addPrize(prizeData) {
   ]);
 
   removeCache([CACHE_KEY_PRIZES]);
-  return { success: true, prize: { id: newId.toString(), name: prizeData.name, description: prizeData.description || '', image_url: prizeData.image_url || '', probability: prizeData.probability || 10, quantity: prizeData.quantity !== undefined ? prizeData.quantity : -1, is_active: true, color: prizeData.color || '#3b82f6', is_donatable: prizeData.is_donatable !== false, is_money: prizeData.is_money === true } };
+  return { success: true, prize: { id: newId.toString(), name: prizeData.name, description: prizeData.description || '', image_url: prizeData.image_url || '', probability: prizeData.probability || 10, quantity: prizeData.quantity !== undefined ? prizeData.quantity : 1, is_active: true, color: prizeData.color || '#3b82f6', is_donatable: prizeData.is_donatable !== false, is_money: prizeData.is_money === true } };
 }
 
 function updatePrize(prizeData) {
@@ -460,7 +460,7 @@ function updatePrize(prizeData) {
         prizeData.description || '',
         prizeData.image_url || '',
         prizeData.probability || 10,
-        prizeData.quantity !== undefined ? prizeData.quantity : -1,
+        prizeData.quantity !== undefined ? prizeData.quantity : 1,
         prizeData.is_active !== false,
         prizeData.color || '#3b82f6',
         prizeData.is_donatable !== false,
@@ -542,7 +542,7 @@ function spin(userId) {
 
     var prizeSheet = ss.getSheetByName('prizes');
     var allPrizes = readPrizesFromSheet(prizeSheet);
-    var prizes = allPrizes.filter(function(p) { return p.quantity !== 0; });
+    var prizes = allPrizes.filter(function(p) { return p.quantity >= 1; });
 
     if (prizes.length === 0) {
       return { success: false, error: 'ไม่มีรางวัลในระบบ' };
@@ -939,9 +939,9 @@ function setupSheets() {
     ['1', 'อั่งเปา 888', 'อั่งเปามงคล', '', 5, 1, true, '#c41e3a', true, true],
     ['2', 'ทองคำ 1 สลึง', 'ทองคำแท้', '', 5, 2, true, '#ffd700', true, false],
     ['3', 'อั่งเปา 168', 'เลขมงคล', '', 15, 10, true, '#8b0000', true, true],
-    ['4', 'ส่วนลด 20%', 'คูปองส่วนลด', '', 25, -1, true, '#daa520', false, false],
-    ['5', 'ส้มมงคล', 'ส้มโชคดี', '', 25, -1, true, '#b22222', false, false],
-    ['6', 'ลองใหม่นะ', 'โชคดีครั้งหน้า', '', 25, -1, true, '#cd853f', false, false]
+    ['4', 'ส่วนลด 20%', 'คูปองส่วนลด', '', 25, 50, true, '#daa520', false, false],
+    ['5', 'ส้มมงคล', 'ส้มโชคดี', '', 25, 50, true, '#b22222', false, false],
+    ['6', 'ลองใหม่นะ', 'โชคดีครั้งหน้า', '', 25, 50, true, '#cd853f', false, false]
   ]);
 
   // Add sample allowed employees

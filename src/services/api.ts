@@ -178,9 +178,9 @@ const demoPrizes: Prize[] = [
   { id: '1', name: 'อั่งเปา 888', description: 'อั่งเปามงคล', image_url: '', probability: 5, quantity: 1, color: '#c41e3a', is_active: true, is_donatable: true, is_money: true },
   { id: '2', name: 'ทองคำ 1 สลึง', description: 'ทองคำแท้', image_url: '', probability: 5, quantity: 2, color: '#ffd700', is_active: true, is_donatable: true },
   { id: '3', name: 'อั่งเปา 168', description: 'เลขมงคล', image_url: '', probability: 15, quantity: 10, color: '#8b0000', is_active: true, is_donatable: true, is_money: true },
-  { id: '4', name: 'ส่วนลด 20%', description: 'คูปองส่วนลด', image_url: '', probability: 25, quantity: -1, color: '#daa520', is_active: true, is_donatable: false },
-  { id: '5', name: 'ส้มมงคล', description: 'ส้มโชคดี', image_url: '', probability: 25, quantity: -1, color: '#b22222', is_active: true, is_donatable: false },
-  { id: '6', name: 'ลองใหม่นะ', description: 'โชคดีครั้งหน้า', image_url: '', probability: 25, quantity: -1, color: '#cd853f', is_active: true, is_donatable: false },
+  { id: '4', name: 'ส่วนลด 20%', description: 'คูปองส่วนลด', image_url: '', probability: 25, quantity: 50, color: '#daa520', is_active: true, is_donatable: false },
+  { id: '5', name: 'ส้มมงคล', description: 'ส้มโชคดี', image_url: '', probability: 25, quantity: 50, color: '#b22222', is_active: true, is_donatable: false },
+  { id: '6', name: 'ลองใหม่นะ', description: 'โชคดีครั้งหน้า', image_url: '', probability: 25, quantity: 50, color: '#cd853f', is_active: true, is_donatable: false },
 ];
 
 let demoUsers: User[] = [
